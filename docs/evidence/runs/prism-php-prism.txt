@@ -1,0 +1,198 @@
+24 half-fixed changes found (337 commits, 46 sibling groups, at upstream/main)
+
+src/Providers/*/Handlers/Structured.php
+  hf-3f1e615  high  fixed in 2 of 11, still old in 7
+    fixed    OpenRouter f04bbe2 2026-01-17 fix(openrouter): Handle null id/model in API responses. (#825)
+    fixed    Ollama cfb62e0 2025-02-02 refactor: Ollama API Conversion (#157)
+    missing  Anthropic:344, DeepSeek:95, Groq:82, Mistral:87, OpenAI:156, XAI:70, Z:85
+    - id: data_get($data, 'id'),
+    - model: data_get($data, 'model'),
+    + id: data_get($data, 'id', ''),
+    + model: data_get($data, 'model', $request->model()),
+
+src/Providers/*/Handlers/Text.php
+  hf-73fe487  high  fixed in 2 of 11, still old in 7
+    fixed    OpenRouter f04bbe2 2026-01-17 fix(openrouter): Handle null id/model in API responses. (#825)
+    fixed    Ollama cfb62e0 2025-02-02 refactor: Ollama API Conversion (#157)
+    missing  Anthropic:166, DeepSeek:136, Groq:134, Mistral:124, OpenAI:184, XAI:165, Z:155
+    - id: data_get($data, 'id'),
+    - model: data_get($data, 'model'),
+    + id: data_get($data, 'id', ''),
+    + model: data_get($data, 'model', $request->model()),
+  hf-af1a9ba  high  fixed in 1 of 11, still old in 5
+    fixed    Anthropic 8008301 2025-12-30 fix(anthropic): set default max tokens (#816)
+    missing  DeepSeek:107, Groq:66, Mistral:143, OpenRouter:106, Z:112
+    - 'max_tokens' => $request->maxTokens(),
+    + 'max_tokens' => $request->maxTokens() ?? 64000,
+  hf-bb3a80f  high  fixed in 3 of 11, still old in 5
+    fixed    DeepSeek 82db2c8 2025-07-05 fix(deepseek): text generation without tools (#466)
+    fixed    Anthropic, OpenAI 2936d2e 2025-06-12 feat!: provider tools (#405)
+    missing  Groq:69, Mistral:147, Ollama:77, XAI:115, Z:115
+    - 'tools' => ToolMap::map($request->tools()),
+    + 'tools' => ToolMap::map($request->tools()) ?: null,
+
+src/Providers/*/Handlers/Stream.php
+  hf-70ed8d8  high  fixed in 1 of 10, still old in 5
+    fixed    OpenAI 7057263 2025-06-12 fix(openai): streaming output response map (#409)
+    missing  DeepSeek:432, Groq:391, Mistral:404, OpenRouter:459, XAI:418
+    - 'messages' => (new MessageMap($request->messages(), $request->systemPrompts()))(),
+    + 'messages' => (new ChatMessageMap($request->messages(), $request->systemPrompts()))(),
+
+src/Providers/*/Maps/ToolMap.php
+  hf-5505660  high  fixed in 2 of 10, still old in 4
+    fixed    DeepSeek, OpenRouter 9447c71 2025-10-14 fix(DeepSeek|OpenRouter): Fix exceptions during tool conversion without parameters (#661)
+    missing  Groq:21, Mistral:21, XAI:21, Z:21
+    + ...$tool->hasParameters() ? [
+    + ] : [],
+
+src/Providers/*/Handlers/Structured.php
+  hf-9dc43e1  high  fixed in 3 of 11, still old in 3
+    fixed    OpenRouter 7a2c72e 2026-01-17 fix(openrouter): Handle missing usage data in API responses. (#823)
+    fixed    OpenAI 14323d1 2025-04-21 bug(openai): add cache usage for OpenAI (#319)
+    fixed    Ollama cfb62e0 2025-02-02 refactor: Ollama API Conversion (#157)
+    missing  DeepSeek:91, Groq:78, Mistral:83
+    - data_get($data, 'usage.prompt_tokens'),
+    - data_get($data, 'usage.completion_tokens'),
+    + (int) data_get($data, 'usage.prompt_tokens', 0),
+    + (int) data_get($data, 'usage.completion_tokens', 0),
+
+src/Providers/*/Handlers/Text.php
+  hf-e24b867  high  fixed in 4 of 11, still old in 3
+    fixed    OpenRouter 7a2c72e 2026-01-17 fix(openrouter): Handle missing usage data in API responses. (#823)
+    fixed    XAI 228726e 2025-07-13 feat(xai): implement streaming and structured response handlers for XAI (#490)
+    fixed    OpenAI 14323d1 2025-04-21 bug(openai): add cache usage for OpenAI (#319)
+    fixed    Ollama cfb62e0 2025-02-02 refactor: Ollama API Conversion (#157)
+    missing  DeepSeek:132, Groq:130, Mistral:120
+    - data_get($data, 'usage.prompt_tokens'),
+    - data_get($data, 'usage.completion_tokens'),
+    + (int) data_get($data, 'usage.prompt_tokens', 0),
+    + (int) data_get($data, 'usage.completion_tokens', 0),
+
+src/Providers/*/Handlers/Structured.php
+  hf-19a8dfc  high  fixed in 1 of 11, still old in 3
+    fixed    Anthropic 8008301 2025-12-30 fix(anthropic): set default max tokens (#816)
+    missing  Groq:53, Mistral:58, OpenRouter:68
+    - 'max_tokens' => $request->maxTokens(),
+    + 'max_tokens' => $request->maxTokens() ?? 64000,
+
+src/Providers/*/Concerns/MapsFinishReason.php
+  hf-f2ef1c7  high  fixed in 3 of 7, still old in 3
+    fixed    OpenRouter 873a46f 2025-11-21 fix(openrouter): null finish reason (#753)
+    fixed    XAI 228726e 2025-07-13 feat(xai): implement streaming and structured response handlers for XAI (#490)
+    fixed    OpenAI fb21a8a 2025-06-11 feat(openai): Responses API (#256)
+    missing  DeepSeek:17, Mistral:17, Z:17
+    - return FinishReasonMap::map(data_get($data, 'choices.0.finish_reason', ''));
+    + $finishReason = data_get($data, 'choices.0.finish_reason', '');
+    + return FinishReasonMap::map($finishReason ?? '');
+
+src/Providers/*/Maps/ToolMap.php
+  hf-a9135eb  high  fixed in 4 of 10, still old in 3
+    fixed    Groq, Ollama, XAI c4d8c5b 2025-08-31 Update dev dependencies & fix failing tests (#591)
+    fixed    Mistral f20de81 2025-02-23 refactor(mistral): Return FInal Response (#191)
+    missing  DeepSeek:17, OpenAI:17, OpenRouter:17
+    - return array_map(fn (Tool $tool): array => array_filter([
+    + return array_map(fn (Tool $tool): array => [
+
+src/Providers/*/Maps/ToolCallMap.php
+  hf-706cf11  high  fixed in 1 of 4, still old in 3
+    fixed    OpenAI 4ae4de5 2025-06-07 fix: openai tool call map fix #397 (#398)
+    missing  DeepSeek:15, Gemini:15, OpenRouter:15
+    - public static function map(array $toolCalls): array
+    + public static function map(?array $toolCalls): array
+
+src/Providers/*/Handlers/Audio.php
+  hf-7840755  high  fixed in 1 of 5, still old in 2
+    fixed    OpenAI 29bf6f0 2025-07-26 fix(openai): update usage token keys to match API changes (#515)
+    missing  Groq:81, Mistral:55
+    - promptTokens: $data['usage']['prompt_tokens'] ?? 0,
+    - completionTokens: $data['usage']['completion_tokens'] ?? 0,
+    + promptTokens: $data['usage']['input_tokens'] ?? 0,
+    + completionTokens: $data['usage']['total_tokens'] ?? 0,
+
+src/Providers/*/Maps/ToolChoiceMap.php
+  hf-322863e  high  fixed in 2 of 9, still old in 2
+    fixed    Groq 235fc58 2025-06-23 fix: make PendingRequest only catch RequestExceptions (#436)
+    fixed    OpenAI 57b552b 2025-04-27 Expand OpenAI tool choice mapping to support 'Any' and 'None' options (#332)
+    missing  DeepSeek:29, OpenRouter:29
+    - default => throw new InvalidArgumentException('Invalid tool choice')
+    + default => throw new PrismException('Invalid tool choice')
+  hf-a6f293e  high  fixed in 1 of 9, still old in 2
+    fixed    Anthropic 143e6e5 2025-03-07 fix(anthropic): tool choice must be object (#234)
+    missing  XAI:30, Z:30
+    - if (! in_array($toolChoice, [ToolChoice::Auto, ToolChoice::Any])) {
+    + if (! in_array($toolChoice, [ToolChoice::Auto, ToolChoice::Any, ToolChoice::None])) {
+
+src/Providers/*/Handlers/Text.php
+  hf-b554cf7  high  fixed in 1 of 11, still old in 1
+    fixed    XAI aa0f29d 2026-02-02 Fix: Ensure step messages represent input only (#884)
+    missing  Z:49
+    - $responseMessage = new AssistantMessage(
+    - data_get($data, 'choices.0.message.content') ?? '',
+    - $this->mapToolCalls(data_get($data, 'choices.0.message.tool_calls', [])),
+    - );
+    - $request->addMessage($responseMessage);
+
+src/Providers/*/Maps/ToolMap.php
+  hf-ca17de4  high  fixed in 1 of 10, still old in 1
+    fixed    OpenRouter 6309868 2025-10-15 fix(OpenRouter):fix the exception caused by calling the gpt-5 model when there are no parameter tools (#666)
+    missing  DeepSeek:22
+    - ...$tool->hasParameters() ? [
+    - 'properties' => $tool->parametersAsArray(),
+    - ] : [],
+    + 'properties' => $tool->hasParameters() ? $tool->parametersAsArray() : (object) [],
+
+src/Providers/*/Handlers/Text.php
+  hf-e199bf5  high  fixed in 2 of 11, still old in 1
+    fixed    OpenRouter 7e32d75 2025-10-10 fix(openrouter): Handle FinishReason::Length (#633)
+    fixed    XAI 228726e 2025-07-13 feat(xai): implement streaming and structured response handlers for XAI (#490)
+    missing  DeepSeek:50
+    - FinishReason::Stop => $this->handleStop($data, $request),
+    + FinishReason::Stop, FinishReason::Length => $this->handleStop($data, $request),
+
+src/*/PendingRequest.php
+  hf-96b1e77  high  fixed in 1 of 6, still old in 1
+    fixed    Structured c4d8c5b 2025-08-31 Update dev dependencies & fix failing tests (#591)
+    missing  Images:40
+    - systemPrompts: $this->systemPrompts,
+
+src/Providers/*/Handlers/Structured.php
+  hf-dcd9304  high  fixed in 1 of 11, still old in 1
+    fixed    OpenAI b9ce9a6 2025-07-13 fix(openai): strict structured bug (#497)
+    missing  XAI:113
+    - 'strict' => $request->providerOptions('schema.strict') ? true : null,
+    + 'strict' => is_null($request->providerOptions('schema.strict'))
+    + ? null
+    + : $request->providerOptions('schema.strict'),
+
+src/Providers/*/Concerns/ValidatesResponse.php
+  hf-376da9b  high  fixed in 1 of 4, still old in 1
+    fixed    OpenAI 9fd0603 2025-07-05 fix(openai): PrismRateLimitedExceptions (#468)
+    missing  Mistral:30
+    - /**
+    - * @return ProviderRateLimit[]
+    - */
+    - abstract protected function processRateLimits(Response $response): array;
+
+src/Providers/*/Handlers/Stream.php
+  hf-d31b957  high  fixed in 1 of 10, still old in 1
+    fixed    OpenAI 3e2ffa4 2025-05-28 fix(openai) error when number 0 is streamed as a function call parameter (#374)
+    missing  Ollama:262
+    - if ($arguments = data_get($toolCall, 'function.arguments')) {
+    + $arguments = data_get($toolCall, 'function.arguments');
+    + if (! is_null($arguments)) {
+
+src/Providers/*/Handlers/Text.php
+  hf-cb0d3d4  high  fixed in 3 of 11, still old in 1
+    fixed    Groq e3c4140 2025-05-12 fix(Groq): empty response data (#349)
+    fixed    Gemini 94a3c62 2025-04-24 fix(Gemini): Gemini responses are empty strings instead of the actual response data (#325)
+    fixed    OpenAI fc34e3e 2025-04-02 bug(openai): Fixed Text handler response (#286)
+    missing  Ollama:105
+    - data_get($data, 'message.content') ?? '',
+    + data_get($data, 'choices.0.message.content') ?? '',
+  hf-abac821  high  fixed in 1 of 11, still old in 1
+    fixed    OpenAI 5f40e58 2025-03-05 fix(openai): use open ai in exception message (#230)
+    missing  Ollama:59
+    - default => throw new PrismException('Ollama: unknown finish reason'),
+    + default => throw new PrismException('OpenAI: unknown finish reason'),
+
+183 lower-confidence changes hidden (--confidence medium, or --all)

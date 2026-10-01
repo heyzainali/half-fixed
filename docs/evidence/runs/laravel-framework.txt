@@ -1,0 +1,62 @@
+warning: shallow clone: history is incomplete, run `git fetch --unshallow` for a full scan
+8 half-fixed changes found (1960 commits, 90 sibling groups, at HEAD)
+
+src/Illuminate/Database/*Connection.php
+  hf-566d1f0  high  fixed in 1 of 5, still old in 3
+    fixed    SqlServer 1bfaa46 2026-05-30 fix: fix isUniqueConstraintError to catch SQL Server error 2627 (#60320)
+    missing  MySql:80, Postgres:78, SQLite:60
+    - protected function isUniqueConstraintError(Exception $exception)
+    + protected function isUniqueConstraintError(Exception $exception): bool
+
+src/Illuminate/Cache/*Lock.php
+  hf-ad34d02  high  fixed in 1 of 10, still old in 1
+    fixed    Memcached 52d5fb5 2026-09-26 [13.x] Fix Memcached locks longer than 30 days expiring immediately (#61742)
+    missing  Cache:38
+    - $this->name, $this->owner, $this->seconds
+    + $this->name, $this->owner, $this->calculateExpiration($this->seconds)
+
+src/Illuminate/Foundation/Console/*Command.php
+  hf-f11496f  high  fixed in 1 of 65, still old in 1
+    fixed    RouteList ddc777a 2026-09-20 [13.x] Output empty JSON array from route:list --json when no routes match (#61642)
+    missing  RouteCache:61
+    - return $this->components->error("Your application doesn't have any routes.");
+    + return $this->option('json')
+    + ? $this->output->writeln('[]')
+    + : $this->components->error("Your application doesn't have any routes.");
+
+src/Illuminate/Database/Eloquent/Casts/*Object.php
+  hf-a8899ec  high  fixed in 1 of 4, still old in 1
+    fixed    AsArray 2ecbe99 2026-09-16 [13.x] Add opt-in support for persisting real NULL on AsCollection/AsArrayObject (#61596)
+    missing  AsEncryptedArray:19
+    - return new class implements CastsAttributes
+    + return new class($arguments) implements CastsAttributes
+
+src/Illuminate/Database/*/Builder.php
+  hf-8e2bb7c  high  fixed in 1 of 3, still old in 1
+    fixed    Query 6cde2ab 2025-05-26 Fix argument types for Illuminate/Database/Query/Builder::upsert() (#55849)
+    missing  Eloquent:1326
+    - public function upsert(array $values, $uniqueBy, $update = null)
+    + public function upsert(array $values, array|string $uniqueBy, ?array $update = null)
+
+src/Illuminate/Mail/resources/views/html/*.blade.php
+  hf-eb5b5c2  high  fixed in 1 of 8, still old in 1
+    fixed    panel ec51a66 2025-04-25 [11.x] Fix `EncodedHtmlString` to ignore instance of `HtmlString` (#55543)
+    missing  layout:43
+    - {!! Illuminate\Mail\Markdown::parse($slot) !!}
+    + {{ Illuminate\Mail\Markdown::parse($slot) }}
+
+src/Illuminate/Console/Scheduling/*Command.php
+  hf-3d4bdbd  high  fixed in 1 of 9, still old in 1
+    fixed    ScheduleTest e365c08 2025-01-23 fix: `schedule:test` on commands using runInBackground (#54321)
+    missing  ScheduleRun:192
+    - $event->runInBackground ? ' in background' : '',
+    + $event->runInBackground ? ' normally in background' : '',
+
+src/Illuminate/Mail/Transport/*Transport.php
+  hf-8fd64cf  high  fixed in 1 of 6, still old in 1
+    fixed    SesV2 55b9539 2024-05-10 fix: incorrect parameter name in SesV2Transport (#51352)
+    missing  Ses:61
+    - $options['Tags'][] = ['Name' => $header->getKey(), 'Value' => $header->getValue()];
+    + $options['EmailTags'][] = ['Name' => $header->getKey(), 'Value' => $header->getValue()];
+
+58 lower-confidence changes hidden (--confidence medium, or --all)

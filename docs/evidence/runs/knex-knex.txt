@@ -1,0 +1,4 @@
+warning: shallow clone: history is incomplete, run `git fetch --unshallow` for a full scan
+no half-fixed changes found (27 commits, 2 sibling groups, at HEAD)
+
+1 lower-confidence change hidden (--confidence medium, or --all)

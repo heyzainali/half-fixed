@@ -1,0 +1,23 @@
+warning: shallow clone: history is incomplete, run `git fetch --unshallow` for a full scan
+3 half-fixed changes found (1569 commits, 60 sibling groups, at HEAD)
+
+activerecord/lib/active_record/associations/*_association.rb
+  hf-e94c86f  high  fixed in 1 of 10, still old in 2
+    fixed    belongs_to 1df1373 2024-11-28 Fix asynchronous destroying of polymorphic `belongs_to` associations
+    missing  has_many:49, has_one:47
+    - association_class: reflection.klass.to_s,
+    + association_class: association_class.to_s,
+
+activesupport/lib/active_support/cache/*_store.rb
+  hf-d44141b  high  fixed in 1 of 6, still old in 1
+    fixed    redis_cache 84437f5 2026-08-25 Fix RedisCacheStore clear and stats with redis-client
+    missing  deprecated_redis_cache:319
+    - redis.then { |c| c.flushdb }
+    + redis.then { |c| c.call("flushdb") }
+  hf-b7ee69f  high  fixed in 1 of 6, still old in 1
+    fixed    redis_cache 84437f5 2026-08-25 Fix RedisCacheStore clear and stats with redis-client
+    missing  deprecated_redis_cache:326
+    - redis.then { |c| c.info }
+    + redis.then { |c| c.call("info") }
+
+60 lower-confidence changes hidden (--confidence medium, or --all)

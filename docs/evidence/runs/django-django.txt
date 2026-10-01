@@ -1,0 +1,49 @@
+warning: shallow clone: history is incomplete, run `git fetch --unshallow` for a full scan
+7 half-fixed changes found (563 commits, 52 sibling groups, at HEAD)
+
+django/conf/locale/*/formats.py
+  hf-e7f90e6  high  fixed in 1 of 85, still old in 22
+    fixed    es 9f20f38 2023-02-08 Fixed #34313 -- Updated thousands separator for Spanish (ES) locale.
+    missing  ar_DZ:27, ca:28, da:24, de:27, el:32, es_AR:28, es_CO:24, eu:19, hr:42, id:47, is:19, it:41, lt:43, mk:38, nl:90, pt:37, pt_BR:32, ro:33, sl:42, sr:42, sr_Latn:42, tr:28
+    - THOUSAND_SEPARATOR = "."
+    + THOUSAND_SEPARATOR = "\xa0" # non-breaking space
+  hf-33d6df4  high  fixed in 1 of 85, still old in 7
+    fixed    ja 6934fc3 2023-08-22 Fixed #34788 -- Corrected NUMBER_GROUPING for Japanese.
+    missing  bn:31, ckb:20, fa:20, ga:20, gd:20, he:20, hi:20
+    - # NUMBER_GROUPING =
+    + NUMBER_GROUPING = 3
+
+django/db/backends/*/features.py
+  hf-f0beab6  high  fixed in 1 of 6, still old in 1
+    fixed    oracle 7e4c4f4 2025-11-21 Fixed #36718 -- Added JSONField support for negative array indexing on Oracle 21c+.
+    missing  mysql:63
+    - supports_json_negative_indexing = False
+
+django/db/backends/*/creation.py
+  hf-8d11f68  high  fixed in 1 of 5, still old in 1
+    fixed    sqlite3 9ba3f74 2025-10-28 Fixed #36596 -- Made parallel test runner respect django_test_skips and django_test_expected_failures.
+    missing  base:126
+    - if os.environ.get("RUNNING_DJANGOS_TEST_SUITE") == "true":
+    - self.mark_expected_failures_and_skips()
+
+django/db/backends/*/features.py
+  hf-3cab0e9  high  fixed in 1 of 6, still old in 1
+    fixed    postgresql e8190b3 2025-09-27 Fixed #36277 -- Fixed DatabaseFeatures.supports_virtual_generated_columns on PostgreSQL 18+.
+    missing  base:386
+    - supports_virtual_generated_columns = False
+
+django/db/backends/*/operations.py
+  hf-547b49a  high  fixed in 3 of 5, still old in 1
+    fixed    base, oracle, sqlite3 0fcee16 2024-01-13 Fixed #35111 -- Fixed compilation of DateField __in/__range rhs on SQLite and MySQL.
+    missing  mysql:233
+    - # Expression values are adapted by the database.
+    - if hasattr(value, "resolve_expression"):
+    - return value
+
+django/db/backends/*/features.py
+  hf-e47dab7  high  fixed in 1 of 6, still old in 1
+    fixed    mysql 0257426 2023-11-26 Fixed #34992 -- Fixed DatabaseFeatures.allows_group_by_selected_pks on MariaDB with ONLY_FULL_GROUP_BY sql mode.
+    missing  postgresql:11
+    - allows_group_by_selected_pks = True
+
+15 lower-confidence changes hidden (--confidence medium, or --all)
