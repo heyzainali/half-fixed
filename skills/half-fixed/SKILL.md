@@ -24,7 +24,7 @@ How it decides:
 
 - **Sibling groups** are files whose paths differ in one directory (`src/Providers/*/Maps/ToolMap.php`) or that share a name suffix in one directory (`src/Cache/*Store.php`). Tests, vendored code, and build output are skipped.
 - For each commit that changed only some members of a group, it takes the code the commit replaced, with just enough surrounding lines to identify it. Then it checks whether the other members still contain that exact code, ignoring whitespace, and don't contain the replacement.
-- **Confidence** is `high` when the commit is a fix (a `fix:` type, or fix-like words when the repo doesn't use conventional commits). It's lower for features and refactors, and lower again when no sibling could take the new code as-is.
+- **Confidence** is `high` when the commit is a fix (a `fix:` type, or fix-like words when the repo doesn't use conventional commits). It's lower for features and refactors, and lower again when no sibling could take the new code as-is. Commits about lint, types, or formatting never count as fixes.
 - **`needs`** on a missing member lists names the new code relies on that the sibling's file doesn't have. A non-empty `needs` means the change has to be adapted, not copied.
 
 The scanner finds candidates, not verdicts. It cannot tell a missed fix from a deliberate difference. That judgement is your job, and it's most of the work.

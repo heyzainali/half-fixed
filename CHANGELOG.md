@@ -9,7 +9,7 @@ Add an entry under `## [Unreleased]` in the same pull request as any change a us
 ### Added
 
 - `half-fixed scan` finds changes that git history made to some members of a sibling group (files that differ in one directory, like `src/Providers/*/Maps/ToolMap.php`, or share a name suffix, like `src/Cache/*Store.php`) while other members still contain the old code. Matching ignores whitespace and widens the context around a change until it identifies it, so fixes that wrap old code instead of deleting it are found too.
-- Findings are ranked `high`, `medium`, or `low` from the commit type and how many independent commits made the change, and drop a level when the new code relies on names only the fixed file has. `--confidence` and `--all` choose what to show.
+- Findings are ranked `high`, `medium`, or `low` from the commit type and how many independent commits made the change, and drop a level when the new code relies on names only the fixed file has. Commits about lint, types, or formatting don't count as fixes. Siblings that already contain every line a change introduced aren't reported, and different additions at the same place are separate findings. `--confidence` and `--all` choose what to show.
 - `half-fixed show <id>` prints one finding in full, with the file and line in each sibling. `half-fixed groups` lists the sibling groups.
 - `--base <rev>` checks only a branch's commits, `--rev`, `--since`, `--max-commits`, `--min-members`, and `--group` narrow a scan, and `--json` gives machine-readable output. Exit codes are 0 for nothing found, 1 for findings, and 2 for errors.
 - `.half-fixed.json` records exemptions with reasons, and sets `minMembers`, `maxCommits`, `include`, and `exclude`.

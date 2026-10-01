@@ -8,18 +8,35 @@ import { loadConfig } from './config.js';
 const CONVENTIONAL = /^(\w+)(\([^)]*\))?!?:/;
 const FIX_TYPES = new Set(['fix', 'hotfix', 'bugfix', 'bug', 'security', 'revert']);
 const FIX_WORDS = /\b(fix(es|ed)?|bug|crash(es|ed)?|error|exception|regression|broken|prevent|handle|null|undefined|empty|missing|incorrect|wrong|leak|race|security|vulnerab\w*|cve|escape|sanitize|overflow)\b/i;
+// Tooling fixes change types, lint, or formatting, not behaviour: `fix(lint): ...`,
+// `fix: satisfy phpstan`. Their changes aren't bug fixes a sibling is missing.
+const TOOLING_SCOPES = new Set(['lint', 'types', 'typing', 'style', 'format', 'ci', 'deps', 'test', 'tests', 'docs']);
+const TOOLING_WORDS = /\b(lint\w*|typing|type[- ]?(hints?|annotations?|safe\w*|discipline|check\w*)|typecheck\w*|mypy|pyright|phpstan|psalm|eslint|rubocop|formatting)\b/i;
 
-/** A conventional-commit type decides on its own; otherwise look for fix-like words. */
+/**
+ * A conventional-commit type decides on its own; otherwise look for fix-like
+ * words. Either way, a commit about tooling (lint, types, formatting) is not a fix.
+ */
 export function isFixCommit(subject) {
+  if (TOOLING_WORDS.test(subject)) return false;
   const m = subject.match(CONVENTIONAL);
-  if (m) return FIX_TYPES.has(m[1].toLowerCase());
+  if (m) {
+    const scopes = (m[2] || '').slice(1, -1).toLowerCase().split(/[|,/ ]+/);
+    return FIX_TYPES.has(m[1].toLowerCase()) && !scopes.some((s) => TOOLING_SCOPES.has(s));
+  }
   return FIX_WORDS.test(subject);
 }
 
 export const LEVELS = ['high', 'medium', 'low'];
 
-function findingId(pattern, old) {
-  return `hf-${createHash('sha1').update(`${pattern}\n${old.join('\n')}`).digest('hex').slice(0, 7)}`;
+/**
+ * A replacement is identified by the code it replaced: different fixes of the
+ * same old code are one finding. An addition's old code is only its location,
+ * so different additions at the same spot are told apart by what they added.
+ */
+function findingId(pattern, window) {
+  const key = window.kind === 'addition' ? [...window.old, '\0', ...window.new] : window.old;
+  return `hf-${createHash('sha1').update(`${pattern}\n${key.join('\n')}`).digest('hex').slice(0, 7)}`;
 }
 
 function confidenceOf(finding) {
@@ -55,6 +72,11 @@ function identifiers(lines) {
 function fileIdentifiers(content) {
   if (!content.idents) content.idents = identifiers(content.lines);
   return content.idents;
+}
+
+function lineSet(content) {
+  if (!content.lineSet) content.lineSet = new Set(content.lines);
+  return content.lineSet;
 }
 
 /**
@@ -149,6 +171,7 @@ export async function scan(cwd, options = {}) {
             if (own && indexOfWindow(own.lines, window.old) !== -1) continue;
 
             const locals = localNames(window, own);
+            const introduced = window.new.filter((line) => !window.old.includes(line));
             const missing = [];
             for (const sibling of untouched) {
               const path = group.members.get(sibling);
@@ -156,12 +179,15 @@ export async function scan(cwd, options = {}) {
               if (!content) continue;
               const at = indexOfWindow(content.lines, window.old);
               if (at === -1 || indexOfWindow(content.lines, window.new) !== -1) continue;
+              // The sibling already has every line the change introduced, just
+              // somewhere else in the file: it isn't missing the change.
+              if (introduced.length && introduced.every((line) => lineSet(content).has(line))) continue;
               const have = fileIdentifiers(content);
               missing.push({ member: sibling, path, line: content.lineNos[at], needs: locals.filter((id) => !have.has(id)) });
             }
             if (missing.length === 0) continue;
 
-            const id = findingId(pattern, window.old);
+            const id = findingId(pattern, window);
             let finding = findings.get(id);
             if (!finding) {
               finding = { id, group: pattern, size: group.members.size, kind: window.kind, old: window.old, new: window.new, fixedIn: [], missing: new Map() };

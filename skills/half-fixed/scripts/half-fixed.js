@@ -408,16 +408,23 @@ function loadConfig(root) {
 var CONVENTIONAL = /^(\w+)(\([^)]*\))?!?:/;
 var FIX_TYPES = new Set(["fix", "hotfix", "bugfix", "bug", "security", "revert"]);
 var FIX_WORDS = /\b(fix(es|ed)?|bug|crash(es|ed)?|error|exception|regression|broken|prevent|handle|null|undefined|empty|missing|incorrect|wrong|leak|race|security|vulnerab\w*|cve|escape|sanitize|overflow)\b/i;
+var TOOLING_SCOPES = new Set(["lint", "types", "typing", "style", "format", "ci", "deps", "test", "tests", "docs"]);
+var TOOLING_WORDS = /\b(lint\w*|typing|type[- ]?(hints?|annotations?|safe\w*|discipline|check\w*)|typecheck\w*|mypy|pyright|phpstan|psalm|eslint|rubocop|formatting)\b/i;
 function isFixCommit(subject) {
+  if (TOOLING_WORDS.test(subject))
+    return false;
   const m = subject.match(CONVENTIONAL);
-  if (m)
-    return FIX_TYPES.has(m[1].toLowerCase());
+  if (m) {
+    const scopes = (m[2] || "").slice(1, -1).toLowerCase().split(/[|,/ ]+/);
+    return FIX_TYPES.has(m[1].toLowerCase()) && !scopes.some((s) => TOOLING_SCOPES.has(s));
+  }
   return FIX_WORDS.test(subject);
 }
 var LEVELS = ["high", "medium", "low"];
-function findingId(pattern, old) {
+function findingId(pattern, window) {
+  const key = window.kind === "addition" ? [...window.old, "\x00", ...window.new] : window.old;
   return `hf-${createHash("sha1").update(`${pattern}
-${old.join(`
+${key.join(`
 `)}`).digest("hex").slice(0, 7)}`;
 }
 function confidenceOf(finding) {
@@ -449,6 +456,11 @@ function fileIdentifiers(content) {
   if (!content.idents)
     content.idents = identifiers(content.lines);
   return content.idents;
+}
+function lineSet(content) {
+  if (!content.lineSet)
+    content.lineSet = new Set(content.lines);
+  return content.lineSet;
 }
 function localNames(window, own) {
   if (!own)
@@ -534,6 +546,7 @@ async function scan(cwd, options = {}) {
             if (own && indexOfWindow(own.lines, window.old) !== -1)
               continue;
             const locals = localNames(window, own);
+            const introduced = window.new.filter((line) => !window.old.includes(line));
             const missing = [];
             for (const sibling of untouched) {
               const path = group.members.get(sibling);
@@ -543,12 +556,14 @@ async function scan(cwd, options = {}) {
               const at = indexOfWindow(content.lines, window.old);
               if (at === -1 || indexOfWindow(content.lines, window.new) !== -1)
                 continue;
+              if (introduced.length && introduced.every((line) => lineSet(content).has(line)))
+                continue;
               const have = fileIdentifiers(content);
               missing.push({ member: sibling, path, line: content.lineNos[at], needs: locals.filter((id) => !have.has(id)) });
             }
             if (missing.length === 0)
               continue;
-            const id = findingId(pattern, window.old);
+            const id = findingId(pattern, window);
             let finding = findings.get(id);
             if (!finding) {
               finding = { id, group: pattern, size: group.members.size, kind: window.kind, old: window.old, new: window.new, fixedIn: [], missing: new Map };

@@ -80,6 +80,33 @@ describe('scan', () => {
     expect(f.missing).toHaveLength(4);
   });
 
+  test('skips siblings that already have the added lines elsewhere in the file', async () => {
+    const r = new Repo();
+    const withStrict = (p) => toolMap(p).replace("'description' => $tool->description(),", "'description' => $tool->description(),\n                'strict' => true,");
+    r.commit('feat: providers', providerFiles({ Echo: withStrict('Echo') }));
+    const fixed = toolMap('Alpha').replace("'type' => 'function',", "'type' => 'function',\n            'strict' => true,");
+    r.commit('fix(alpha): send strict', { 'src/Providers/Alpha/Maps/ToolMap.php': fixed });
+    const [f] = (await scan(r.dir)).findings;
+    expect(f.kind).toBe('addition');
+    expect(f.missing.map((m) => m.member)).toEqual(['Bravo', 'Charlie', 'Delta']);
+  });
+
+  test('keeps different additions at the same spot apart', async () => {
+    const r = new Repo();
+    const add = (p, line) => toolMap(p).replace("'type' => 'function',", `'type' => 'function',\n            ${line}`);
+    // Echo already sends strict, further down, so only the timeout change applies to it.
+    const echo = toolMap('Echo').replace("'description' => $tool->description(),", "'description' => $tool->description(),\n                'strict' => true,");
+    r.commit('feat: providers', providerFiles({ Echo: echo }));
+    r.commit('fix(alpha): send strict', { 'src/Providers/Alpha/Maps/ToolMap.php': add('Alpha', "'strict' => true,") });
+    r.commit('fix(bravo): send timeout', { 'src/Providers/Bravo/Maps/ToolMap.php': add('Bravo', "'timeout' => $tool->timeout(),") });
+    const { findings } = await scan(r.dir);
+    const strict = findings.find((f) => f.new.includes("'strict' => true,"));
+    const timeout = findings.find((f) => f.new.includes("'timeout' => $tool->timeout(),"));
+    expect(strict.id).not.toBe(timeout.id);
+    expect(strict.missing.map((m) => m.member)).toEqual(['Charlie', 'Delta']);
+    expect(timeout.missing.map((m) => m.member)).toEqual(['Charlie', 'Delta', 'Echo']);
+  });
+
   test('finds suffix siblings in one directory', async () => {
     const r = new Repo();
     const store = (name, body) => `<?php\nclass ${name}Store\n{\n    public function get(string $key)\n    {\n${body}\n    }\n}\n`;

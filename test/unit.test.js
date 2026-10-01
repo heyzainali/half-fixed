@@ -83,6 +83,16 @@ describe('commits', () => {
     expect(isFixCommit('Handle null finish reason')).toBe(true);
     expect(isFixCommit('Add streaming support')).toBe(false);
   });
+
+  test('treats lint, type, and formatting commits as tooling, not fixes', () => {
+    expect(isFixCommit('fix(lint): Partly fix LIT issues')).toBe(false);
+    expect(isFixCommit('fix(proxy): satisfy TypeSafe CI gates')).toBe(false);
+    expect(isFixCommit('fix(xai): satisfy type-discipline gate on web search billing')).toBe(false);
+    expect(isFixCommit('fix(types|ci): narrow return types')).toBe(false);
+    expect(isFixCommit('Fix phpstan errors')).toBe(false);
+    expect(isFixCommit('fix: handle content type header')).toBe(true);
+    expect(isFixCommit('fix(DeepSeek|OpenRouter): Fix exceptions during tool conversion')).toBe(true);
+  });
 });
 
 describe('diff', () => {
