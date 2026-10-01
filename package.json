@@ -1,0 +1,58 @@
+{
+  "name": "half-fixed",
+  "version": "0.0.0",
+  "description": "Find bug fixes that reached some sibling implementations but not the others. A git-history scanner plus Agent Skills for Claude Code, Codex, and any SKILL.md agent.",
+  "type": "module",
+  "packageManager": "bun@1.4.2",
+  "engines": {
+    "node": ">=18"
+  },
+  "bin": {
+    "half-fixed": "bin/half-fixed.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "skills",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build:fallback": "node scripts/build-fallback.js",
+    "check:metadata": "node scripts/check-metadata.js",
+    "check:fallback": "node scripts/check-fallback.js",
+    "check:package": "node scripts/check-package.js",
+    "check:node-help": "node skills/half-fixed/scripts/half-fixed.js --help",
+    "release": "node scripts/release.js",
+    "half-fixed": "bun run ./bin/half-fixed.js",
+    "test": "bun test ./test/*.test.js",
+    "test:coverage": "bun test ./test/*.test.js --coverage --coverage-reporter=lcov --coverage-dir=coverage && node scripts/check-coverage.js coverage/lcov.info src && bun run check:fallback"
+  },
+  "keywords": [
+    "agent-skills",
+    "claude-code",
+    "codex",
+    "skill-md",
+    "git",
+    "static-analysis",
+    "bug-finding",
+    "code-review",
+    "open-source",
+    "cli"
+  ],
+  "author": {
+    "name": "Zain Ali",
+    "url": "https://github.com/zain534102"
+  },
+  "homepage": "https://github.com/zain534102/half-fixed",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zain534102/half-fixed.git"
+  },
+  "bugs": {
+    "url": "https://github.com/zain534102/half-fixed/issues"
+  },
+  "license": "MIT",
+  "devDependencies": {}
+}

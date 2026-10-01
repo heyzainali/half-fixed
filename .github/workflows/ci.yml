@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.2
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Check release metadata
+        run: bun run check:metadata
+
+      - name: Run tests
+        run: bun run test
+
+      - name: Run coverage and fallback checks
+        run: bun run test:coverage
+
+      - name: Check bundled fallback under Node
+        run: node skills/half-fixed/scripts/half-fixed.js --help
+
+  node:
+    name: Node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # package.json declares engines.node >=18; keep the floor covered.
+        node: ["18", "20", "22"]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # The scanner reads history, so give it all of it.
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ matrix.node }}
+
+      # Exit 1 means findings, which is fine here; 2 means the scan broke.
+      - name: Run the source CLI
+        run: |
+          node bin/half-fixed.js --version
+          node bin/half-fixed.js groups
+          node bin/half-fixed.js scan --all || [ $? -eq 1 ]
+
+      - name: Run the bundled fallback
+        run: |
+          node skills/half-fixed/scripts/half-fixed.js --version
+          node skills/half-fixed/scripts/half-fixed.js scan --all || [ $? -eq 1 ]
+
+      # A copied skill runs outside this repo's package.json, so run a copy
+      # under a CommonJS package.json the way a copied install would.
+      - name: Run a copied fallback outside the repo
+        run: |
+          install="$RUNNER_TEMP/copied-skill"
+          mkdir -p "$install"
+          echo '{ "type": "commonjs" }' > "$RUNNER_TEMP/package.json"
+          cp -r skills/half-fixed "$install/"
+          node "$install/half-fixed/scripts/half-fixed.js" --version
+          node "$install/half-fixed/scripts/half-fixed.js" scan "$GITHUB_WORKSPACE" --all || [ $? -eq 1 ]
+
+      # Everything above runs from the checkout. Install the packed tarball the
+      # way npm users get it, so a file missing from package.json "files"
+      # cannot ship a half-fixed bin that crashes on start.
+      - name: Install and run the packed tarball
+        run: node scripts/check-package.js

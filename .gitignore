@@ -1,0 +1,10 @@
+.DS_Store
+*.swp
+*.swo
+*~
+node_modules/
+coverage/
+dist/
+.env
+.env.*
+.claude/settings.local.json
