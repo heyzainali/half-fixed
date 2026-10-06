@@ -6,7 +6,7 @@ The latest release tag on the `main` branch is supported. Older tags are support
 
 ## Reporting a Vulnerability
 
-Please report vulnerabilities privately via [GitHub Security Advisories](https://github.com/zain534102/half-fixed/security/advisories/new) rather than opening a public issue.
+Please report vulnerabilities privately via [GitHub Security Advisories](https://github.com/heyzainali/half-fixed/security/advisories/new) rather than opening a public issue.
 
 Include, where possible:
 

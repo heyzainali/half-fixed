@@ -3,7 +3,7 @@
   "description": "Find bug fixes that reached some sibling implementations but not the others.",
   "owner": {
     "name": "Zain Ali",
-    "url": "https://github.com/zain534102"
+    "url": "https://github.com/heyzainali"
   },
   "plugins": [
     {
@@ -12,9 +12,9 @@
       "description": "Finds bug fixes that reached some sibling implementations but not the others, triages each one, and drafts contributions in the target repository's own style.",
       "author": {
         "name": "Zain Ali",
-        "url": "https://github.com/zain534102"
+        "url": "https://github.com/heyzainali"
       },
-      "repository": "https://github.com/zain534102/half-fixed",
+      "repository": "https://github.com/heyzainali/half-fixed",
       "license": "MIT",
       "keywords": ["bug-finding", "git", "code-review", "open-source", "contributions"]
     }

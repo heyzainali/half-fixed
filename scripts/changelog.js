@@ -3,7 +3,7 @@
 // and the release script moves them into a dated section for the new version.
 
 export const CHANGELOG_FILE = "CHANGELOG.md";
-const REPO_URL = "https://github.com/zain534102/half-fixed";
+const REPO_URL = "https://github.com/heyzainali/half-fixed";
 const UNRELEASED_HEADING = /^## \[Unreleased\][^\n]*\n/m;
 
 function unreleasedBounds(text) {

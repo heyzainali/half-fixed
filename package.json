@@ -43,15 +43,15 @@
   ],
   "author": {
     "name": "Zain Ali",
-    "url": "https://github.com/zain534102"
+    "url": "https://github.com/heyzainali"
   },
-  "homepage": "https://github.com/zain534102/half-fixed",
+  "homepage": "https://github.com/heyzainali/half-fixed",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/zain534102/half-fixed.git"
+    "url": "git+https://github.com/heyzainali/half-fixed.git"
   },
   "bugs": {
-    "url": "https://github.com/zain534102/half-fixed/issues"
+    "url": "https://github.com/heyzainali/half-fixed/issues"
   },
   "license": "MIT",
   "devDependencies": {}

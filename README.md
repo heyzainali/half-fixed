@@ -4,7 +4,7 @@
 
 **Your bug was fixed. Just not everywhere.**
 
-[![CI](https://github.com/zain534102/half-fixed/actions/workflows/ci.yml/badge.svg)](https://github.com/zain534102/half-fixed/actions/workflows/ci.yml)
+[![CI](https://github.com/heyzainali/half-fixed/actions/workflows/ci.yml/badge.svg)](https://github.com/heyzainali/half-fixed/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Agent Skills](https://img.shields.io/badge/Agent_Skills-SKILL.md-blue)](https://agentskills.io)
 [![Claude Code](https://img.shields.io/badge/Claude_Code-plugin-blueviolet)](https://docs.anthropic.com/en/docs/claude-code)
@@ -69,21 +69,21 @@ That ratio is the point. In well-reviewed projects most differences between sibl
 **Claude Code** (type these in a session):
 
 ```text
-/plugin marketplace add zain534102/half-fixed
+/plugin marketplace add heyzainali/half-fixed
 /plugin install half-fixed@half-fixed
 ```
 
 **Codex:**
 
 ```bash
-codex plugin marketplace add zain534102/half-fixed
+codex plugin marketplace add heyzainali/half-fixed
 codex plugin add half-fixed@half-fixed
 ```
 
 **Any other agent that reads `SKILL.md`** (Cursor, GitHub Copilot, Gemini CLI, OpenCode, and others):
 
 ```bash
-npx skills add zain534102/half-fixed
+npx skills add heyzainali/half-fixed
 ```
 
 Then ask your agent: *"Find half-fixed bugs in this repo"*, or *"Did my last fix reach every provider?"*
@@ -100,13 +100,13 @@ npx half-fixed scan
 Paste this into your coding agent:
 
 ```text
-Install the half-fixed skills from https://github.com/zain534102/half-fixed.
+Install the half-fixed skills from https://github.com/heyzainali/half-fixed.
 
 Work out which agent you are, then use the matching method. If a command fails or you can't run it, tell me the exact command to run myself.
 
-- Claude Code: run `claude plugin marketplace add zain534102/half-fixed`, then `claude plugin install half-fixed@half-fixed`. If the `claude` CLI isn't available, tell me to type `/plugin marketplace add zain534102/half-fixed` and then `/plugin install half-fixed@half-fixed` in this session.
-- Codex: run `codex plugin marketplace add zain534102/half-fixed`, then `codex plugin add half-fixed@half-fixed`.
-- Any other agent that supports SKILL.md: run `npx skills add zain534102/half-fixed`. If that doesn't work, clone the repository to a temporary directory and copy both folders in its `skills/` directory into your skills directory.
+- Claude Code: run `claude plugin marketplace add heyzainali/half-fixed`, then `claude plugin install half-fixed@half-fixed`. If the `claude` CLI isn't available, tell me to type `/plugin marketplace add heyzainali/half-fixed` and then `/plugin install half-fixed@half-fixed` in this session.
+- Codex: run `codex plugin marketplace add heyzainali/half-fixed`, then `codex plugin add half-fixed@half-fixed`.
+- Any other agent that supports SKILL.md: run `npx skills add heyzainali/half-fixed`. If that doesn't work, clone the repository to a temporary directory and copy both folders in its `skills/` directory into your skills directory.
 
 Prefer a project install unless I asked for a global one. When you're done, tell me what you installed, where, and whether I need to restart you.
 ```

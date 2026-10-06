@@ -238,7 +238,7 @@ function main(argv) {
 
   const releaseUrl = run("gh", ["release", "create", tag, "--title", tag, "--generate-notes", "--verify-tag"]).trim();
   console.log(`Created GitHub release: ${releaseUrl}`);
-  console.log(`The Publish workflow is publishing ${packageJson.name}@${nextVersion} to npm: https://github.com/zain534102/half-fixed/actions/workflows/publish.yml`);
+  console.log(`The Publish workflow is publishing ${packageJson.name}@${nextVersion} to npm: https://github.com/heyzainali/half-fixed/actions/workflows/publish.yml`);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
