@@ -879,7 +879,7 @@ function renderGroups(result, { color = false } = {}) {
 }
 
 // src/version.js
-var VERSION = "0.1.1";
+var VERSION = "0.1.2";
 
 // src/cli.js
 var EXIT = { CLEAN: 0, FINDINGS: 1, ERROR: 2 };

@@ -6,6 +6,8 @@ Add an entry under `## [Unreleased]` in the same pull request as any change a us
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-10-12
+
 ### Added
 
 - The Codex plugin has a logo, two fixed siblings over two that still have the old code.
@@ -54,6 +56,7 @@ Scanning someone else's repository means reading text and settings that its auth
 - The scan runs `git log` with `--no-textconv` and `--no-ext-diff`, so it never starts a diff or text-conversion program.
 - Both skills treat a repository's documents, issues, and pull requests as data, and ask before running a project's install, build, or test commands in a repository you don't trust.
 
-[Unreleased]: https://github.com/heyzainali/half-fixed/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/heyzainali/half-fixed/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/heyzainali/half-fixed/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/heyzainali/half-fixed/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/heyzainali/half-fixed/releases/tag/v0.1.0
