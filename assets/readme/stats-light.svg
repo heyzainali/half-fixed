@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="776" height="36" viewBox="0 0 776 36" role="img" aria-labelledby="title">
+  <title id="title">3 upstream bugs found, 5,000 commits in 69 s, 0 dependencies, runs offline, MIT</title>
+  <rect x="0.5" y="0.5" width="775" height="35" rx="8" fill="#f6f8fa" stroke="#d1d9e0"/>
+  <rect x="14" y="13" width="10" height="10" rx="2.5" fill="#1a7f37"/><text x="32" y="22.5" font-family='ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace' font-size="13" fill="#1f2328">3 upstream bugs found</text>
+  <rect x="221.79999999999998" y="13" width="10" height="10" rx="2.5" fill="#1a7f37"/><text x="239.79999999999998" y="22.5" font-family='ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace' font-size="13" fill="#1f2328">5,000 commits in 69 s</text>
+  <rect x="429.59999999999997" y="13" width="10" height="10" rx="2.5" fill="#1a7f37"/><text x="447.59999999999997" y="22.5" font-family='ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace' font-size="13" fill="#1f2328">0 dependencies</text>
+  <rect x="582.8" y="13" width="10" height="10" rx="2.5" fill="#1a7f37"/><text x="600.8" y="22.5" font-family='ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace' font-size="13" fill="#1f2328">runs offline</text>
+  <rect x="720.4" y="13" width="10" height="10" rx="2.5" fill="#1a7f37"/><text x="738.4" y="22.5" font-family='ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace' font-size="13" fill="#1f2328">MIT</text>
+</svg>

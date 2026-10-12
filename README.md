@@ -11,28 +11,21 @@
 half-fixed finds fixes that reached some sibling implementations but not the others,<br>
 then helps your agent check them and finish the job.</p>
 
-<p>
-  <a href="https://www.npmjs.com/package/half-fixed"><img src="https://img.shields.io/npm/v/half-fixed?style=flat-square&color=e8590c&label=npm" alt="npm version"></a>
-  <a href="https://github.com/heyzainali/half-fixed/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/heyzainali/half-fixed/ci.yml?branch=main&style=flat-square&label=CI" alt="CI status"></a>
-  <a href="#quick-start"><img src="https://img.shields.io/node/v/half-fixed?style=flat-square&color=e8590c" alt="Node version"></a>
-  <a href="package.json"><img src="https://img.shields.io/badge/dependencies-0-e8590c?style=flat-square" alt="Zero dependencies"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-e8590c?style=flat-square" alt="MIT license"></a>
-</p>
+<a href="docs/evidence/README.md">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/readme/stats-dark.svg">
+    <img src="assets/readme/stats-light.svg" alt="3 upstream bugs found, 5,000 commits in 69 s, 0 dependencies, runs offline, MIT" width="776">
+  </picture>
+</a>
 
 <p>
-  <a href="#quick-start"><b>Quick start</b></a>
-  &nbsp;·&nbsp;
-  <a href="#bugs-it-has-found"><b>Bugs found</b></a>
-  &nbsp;·&nbsp;
-  <a href="#how-it-works"><b>How it works</b></a>
-  &nbsp;·&nbsp;
-  <a href="#skills"><b>Skills</b></a>
-  &nbsp;·&nbsp;
-  <a href="#cli"><b>CLI</b></a>
-  &nbsp;·&nbsp;
-  <a href="docs/evidence/README.md"><b>Evidence</b></a>
-  &nbsp;·&nbsp;
-  <a href="CONTRIBUTING.md"><b>Contributing</b></a>
+  <a href="#quick-start"><code>--quick-start</code></a>&nbsp;
+  <a href="#bugs-it-has-found"><code>--bugs-found</code></a>&nbsp;
+  <a href="#how-it-works"><code>--how-it-works</code></a>&nbsp;
+  <a href="#skills"><code>--skills</code></a>&nbsp;
+  <a href="#cli"><code>--cli</code></a>&nbsp;
+  <a href="docs/evidence/README.md"><code>--evidence</code></a>&nbsp;
+  <a href="CONTRIBUTING.md"><code>--contributing</code></a>
 </p>
 
 <br>

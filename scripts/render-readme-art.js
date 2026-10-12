@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Renders the README hero and the "How it works" diagram in light and dark
+// Renders the README hero, the stats strip, and the "How it works" diagram in light and dark
 // variants under assets/readme/. The README picks one with <picture> and
 // prefers-color-scheme. Both depict the real prism-php/prism finding that
 // became prism-php/prism#1038.
@@ -35,6 +35,29 @@ function hero(t) {
   <text x="${width / 2}" y="72" text-anchor="middle" font-family='${MONO}' font-size="60" font-weight="700" fill="${t.fg}">half<tspan fill="${t.old}">-</tspan>fixed</text>
   ${squares}
   <text x="${width / 2}" y="150" text-anchor="middle" font-family='${MONO}' font-size="13" fill="${t.muted}"><tspan fill="${t.fixed}">fixed in 2 of 10</tspan>, <tspan fill="${t.old}">still old in 4</tspan></text>
+</svg>
+`;
+}
+
+const STATS = ["3 upstream bugs found", "5,000 commits in 69 s", "0 dependencies", "runs offline", "MIT"];
+
+function stats(t) {
+  const charWidth = 13 * 0.6;
+  const square = 10;
+  const pad = 14;
+  const itemGap = 26;
+  const widths = STATS.map((label) => square + 8 + label.length * charWidth);
+  const width = Math.ceil(widths.reduce((a, b) => a + b, 0) + itemGap * (STATS.length - 1) + pad * 2);
+  let x = pad;
+  const items = STATS.map((label, i) => {
+    const item = `<rect x="${x}" y="13" width="${square}" height="${square}" rx="2.5" fill="${t.fixed}"/><text x="${x + square + 8}" y="22.5" font-family='${MONO}' font-size="13" fill="${t.fg}">${label}</text>`;
+    x += widths[i] + itemGap;
+    return item;
+  }).join("\n  ");
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="36" viewBox="0 0 ${width} 36" role="img" aria-labelledby="title">
+  <title id="title">${STATS.join(", ")}</title>
+  <rect x="0.5" y="0.5" width="${width - 1}" height="35" rx="8" fill="${t.surface}" stroke="${t.faint}"/>
+  ${items}
 </svg>
 `;
 }
@@ -116,5 +139,6 @@ mkdirSync(OUT_DIR, { recursive: true });
 for (const [name, theme] of Object.entries(THEMES)) {
   writeFileSync(path.join(OUT_DIR, `hero-${name}.svg`), hero(theme));
   writeFileSync(path.join(OUT_DIR, `how-it-works-${name}.svg`), diagram(theme));
+  writeFileSync(path.join(OUT_DIR, `stats-${name}.svg`), stats(theme));
 }
-console.log(`Wrote the hero and diagram to ${path.relative(repoRoot, OUT_DIR)}.`);
+console.log(`Wrote the hero, stats strip, and diagram to ${path.relative(repoRoot, OUT_DIR)}.`);
