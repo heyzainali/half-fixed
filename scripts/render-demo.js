@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Renders docs/demo/scan.svg, the animated terminal at the top of the README.
+// Renders assets/readme/demo.svg, the animated terminal at the top of the README.
 // It runs the real CLI against prism-php/prism at the commit before
 // prism-php/prism#1038, so the output in the demo is genuine and repeatable:
 //
@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 import { runCli } from "../src/cli.js";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const OUT = path.join(repoRoot, "docs", "demo", "scan.svg");
+const OUT = path.join(repoRoot, "assets", "readme", "demo.svg");
 const PRISM_REV = "5d6cc65b80b19cf3f22744703ac0c727b68cdca8";
 const ARGS = ["scan", "--group", "ToolMap"];
 const COMMENT = "# Groq, Mistral, xAI and Z still had the bug: fixed in prism-php/prism#1038";
