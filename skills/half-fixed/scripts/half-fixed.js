@@ -744,7 +744,7 @@ function renderGroups(result, { color = false } = {}) {
 }
 
 // src/version.js
-var VERSION = "0.0.0";
+var VERSION = "0.1.0";
 
 // src/cli.js
 var EXIT = { CLEAN: 0, FINDINGS: 1, ERROR: 2 };

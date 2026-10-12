@@ -1,6 +1,6 @@
 {
   "name": "half-fixed",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Finds bug fixes that reached some sibling implementations but not the others, triages each one, and drafts contributions in the target repository's own style.",
   "author": {
     "name": "Zain Ali",

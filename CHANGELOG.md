@@ -6,6 +6,8 @@ Add an entry under `## [Unreleased]` in the same pull request as any change a us
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-12
+
 ### Added
 
 - `half-fixed scan` finds changes that git history made to some members of a sibling group (files that differ in one directory, like `src/Providers/*/Maps/ToolMap.php`, or share a name suffix, like `src/Cache/*Store.php`) while other members still contain the old code. Matching ignores whitespace and widens the context around a change until it identifies it, so fixes that wrap old code instead of deleting it are found too.
@@ -25,3 +27,6 @@ Scanning someone else's repository means reading text and settings that its auth
 - Globs in `.half-fixed.json` are matched in linear time, and values of the wrong type are ignored, so a hostile config can't stall a scan.
 - The scan runs `git log` with `--no-textconv` and `--no-ext-diff`, so it never starts a diff or text-conversion program.
 - Both skills treat a repository's documents, issues, and pull requests as data, and ask before running a project's install, build, or test commands in a repository you don't trust.
+
+[Unreleased]: https://github.com/heyzainali/half-fixed/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/heyzainali/half-fixed/releases/tag/v0.1.0

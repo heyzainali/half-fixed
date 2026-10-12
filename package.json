@@ -1,6 +1,6 @@
 {
   "name": "half-fixed",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Find bug fixes that reached some sibling implementations but not the others. A git-history scanner plus Agent Skills for Claude Code, Codex, and any SKILL.md agent.",
   "type": "module",
   "packageManager": "bun@1.4.2",
