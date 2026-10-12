@@ -2,7 +2,7 @@
 
 > Read by Claude Code as CLAUDE.md and by Codex and other agents as AGENTS.md (a symlink).
 
-A git-history scanner that finds fixes made to some sibling implementations but not the others, shipped as Agent Skills. The tooling matches [danjdewhurst/story-skills](https://github.com/danjdewhurst/story-skills): Bun for development, a Node 18+ runtime for the shipped CLI.
+A git-history scanner that finds fixes made to some sibling implementations but not the others, shipped as Agent Skills. Bun for development, a Node 18+ runtime for the shipped CLI.
 
 ## Quick reference
 
@@ -35,7 +35,7 @@ skills/
 │   ├── references/              # triage.md, fixing.md (loaded on demand)
 │   └── scripts/half-fixed.js    # bundled CLI (bun build --target=node), committed, never edited by hand
 └── house-style/SKILL.md         # match a repo's PR and commit conventions
-scripts/                         # build, check, and release tooling
+scripts/                         # build, check, and release tooling (plain Node, shared helpers in lib.js)
 test/                            # bun:test suites that build throwaway git repos
 ```
 
