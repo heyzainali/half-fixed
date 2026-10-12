@@ -3,6 +3,10 @@ name: Publish
 # `bun run release` pushes a vX.Y.Z tag, and this workflow publishes that
 # version to npm through trusted publishing (OIDC). No npm token is stored;
 # npmjs.com trusts this workflow file by name, and provenance is automatic.
+#
+# The job deploys to the `npm` environment, which only v* tags and main may
+# use, so a workflow changed on any other branch can't publish. To publish an
+# existing tag by hand, run this workflow from main with the tag as input.
 on:
   push:
     tags: ["v*"]
@@ -23,6 +27,10 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # Each run shows under Deployments, linked to the version on npmjs.com.
+    environment:
+      name: npm
+      url: ${{ steps.version.outputs.url }}
     permissions:
       contents: read
       id-token: write
@@ -58,12 +66,14 @@ jobs:
           fi
 
       - name: Check the tag matches package.json
+        id: version
         run: |
           version="$(node -p "require('./package.json').version")"
           if [ "$TAG" != "v$version" ]; then
             echo "::error::Tag $TAG does not match package.json version $version"
             exit 1
           fi
+          echo "url=https://www.npmjs.com/package/half-fixed/v/$version" >> "$GITHUB_OUTPUT"
 
       # The release preflight already ran the full checks; this is a smoke test.
       - name: Run both CLIs
