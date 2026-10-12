@@ -3,13 +3,33 @@ export function palette(color) {
   return { red: paint(31), green: paint(32), yellow: paint(33), dim: paint(2), bold: paint(1) };
 }
 
-// Text from a scanned repository can carry terminal escapes or bidirectional
-// overrides that rewrite the user's screen or disguise code, so they're shown
-// escaped. Tabs are kept, and newlines never reach here.
-const UNSAFE = /[\u0000-\u0008\u000b-\u001f\u007f-\u009f\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/g;
+// Text from a scanned repository can carry terminal escapes, bidirectional
+// overrides, or invisible characters (zero-width, Unicode tags, variation
+// selectors) that rewrite the user's screen, disguise code, or hide instructions
+// from the agent reading the output. They're shown as escapes instead. Tabs are
+// kept, and newlines are kept only in multi-line messages such as errors.
+const UNSAFE = /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}\p{Variation_Selector}]/gu;
 
-export function safe(value) {
-  return String(value).replace(UNSAFE, (ch) => `\\u${ch.charCodeAt(0).toString(16).padStart(4, '0')}`);
+function escapeCodePoint(ch) {
+  const code = ch.codePointAt(0);
+  return code > 0xffff ? `\\u{${code.toString(16)}}` : `\\u${code.toString(16).padStart(4, '0')}`;
+}
+
+export function safe(value, { multiline = false } = {}) {
+  return String(value).replace(UNSAFE, (ch) => (ch === '\t' || (multiline && ch === '\n') ? ch : escapeCodePoint(ch)));
+}
+
+/**
+ * JSON with the same characters escaped as \u sequences: still the same data
+ * to any parser, but nothing invisible or terminal-altering in the raw text.
+ */
+export function safeJson(value) {
+  return JSON.stringify(value, null, 2).replace(UNSAFE, (ch) => {
+    if (ch === '\n') return ch;
+    let out = '';
+    for (let i = 0; i < ch.length; i++) out += `\\u${ch.charCodeAt(i).toString(16).padStart(4, '0')}`;
+    return out;
+  });
 }
 
 const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;

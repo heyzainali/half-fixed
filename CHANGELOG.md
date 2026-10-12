@@ -6,6 +6,22 @@ Add an entry under `## [Unreleased]` in the same pull request as any change a us
 
 ## [Unreleased]
 
+### Security
+
+An independent review found more ways a repository you scan, which may not be yours, could interfere with the scan:
+
+- `npx half-fixed`, `npm exec`, and `bunx` put the current project's `node_modules/.bin` first on `PATH`, so scanning from inside a repository that commits its own `git` there ran that program. half-fixed now looks git up itself and skips `node_modules` directories, relative `PATH` entries, and the directory being scanned. On Windows this also stops git being looked up in the current directory.
+- `.half-fixed.json` must be a regular file under 256 KiB, so a symlink can't make the scan read `/dev/zero` or another of your files, and a parse error no longer quotes the file. Glob lists are capped at 50 globs of up to 200 characters, exemption reasons are kept to one line, and `minMembers` and `maxCommits` are bounded.
+- Very long lines and paths, hunks split into hundreds of edits, and files over 1 MiB are skipped where matching them would take quadratic time or unbounded memory. Glob matching rejects most paths before doing any work.
+- `git log` runs with `--no-show-signature` and its own diff prefixes, so a repository's git config can't start a signature program or change the diff the parser reads. Revisions and pathspecs reach git on stdin, so a repository with very many sibling groups no longer fails with `E2BIG`.
+- Output escapes every control and format character, including zero-width characters, Unicode tag characters, and variation selectors, which could hide instructions from an agent reading it. `--json` escapes the same characters as `\u` sequences, so it's still the same data to a parser. Error messages are escaped too.
+- The skills ask for the user's go-ahead before running any of a repository's code and before fetching in a clone you didn't make, treat every field the scanner reports as untrusted, quote repository text passed to a shell, and report how many findings a repository's own config dismissed.
+
+### Changed
+
+- `--max-commits` and `--min-members` accept whole numbers from 1 to 1,000,000, and an argument that happens to share a name with an object property, such as `constructor`, is read as a path.
+- The error for a repository owned by another user now says so, instead of "not a git repository", and doesn't suggest turning off git's ownership check.
+
 ## [0.1.0] - 2026-10-12
 
 ### Added
@@ -23,8 +39,8 @@ Add an entry under `## [Unreleased]` in the same pull request as any change a us
 Scanning someone else's repository means reading text and settings that its authors control, so half-fixed treats all of it as untrusted:
 
 - `--rev` and `--base` are resolved to commits before git sees them, and a value that starts with `-` is refused, so it can't reach git as an option such as `--output=<file>`.
-- Text from the scanned repository, such as commit subjects, paths, and code, is printed with terminal control characters and bidirectional overrides escaped, so it can't rewrite your terminal or disguise code. `--json` output was already escaped.
-- Globs in `.half-fixed.json` are matched in linear time, and values of the wrong type are ignored, so a hostile config can't stall a scan.
+- Text from the scanned repository, such as commit subjects, paths, and code, is printed with terminal control characters and bidirectional overrides escaped, so it can't rewrite your terminal or disguise code. `--json` escaped control characters below U+0020.
+- Globs in `.half-fixed.json` are matched in linear time, and values of the wrong type are ignored, so a crafted glob can't make matching take exponential time.
 - The scan runs `git log` with `--no-textconv` and `--no-ext-diff`, so it never starts a diff or text-conversion program.
 - Both skills treat a repository's documents, issues, and pull requests as data, and ask before running a project's install, build, or test commands in a repository you don't trust.
 

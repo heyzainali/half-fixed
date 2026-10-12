@@ -22,6 +22,7 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
       id-token: write
@@ -33,6 +34,8 @@ jobs:
         with:
           ref: refs/tags/${{ env.TAG }}
           persist-credentials: false
+          # Full history, so the tag can be checked against main.
+          fetch-depth: 0
 
       - name: Set up Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -40,9 +43,19 @@ jobs:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
 
-      # Trusted publishing needs npm 11.5.1 or later.
+      # Trusted publishing needs npm 11.5.1 or later. Pinned, because this job
+      # holds the token that can publish.
       - name: Update npm
-        run: npm install --global npm@11
+        run: npm install --global npm@11.21.0
+
+      # A release tag must point at a commit on main, so a tag pushed from a
+      # side branch can't publish code that was never merged.
+      - name: Check the tag is on main
+        run: |
+          if ! git merge-base --is-ancestor HEAD origin/main; then
+            echo "::error::$TAG is not on main"
+            exit 1
+          fi
 
       - name: Check the tag matches package.json
         run: |

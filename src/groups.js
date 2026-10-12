@@ -50,48 +50,71 @@ function tokenize(glob) {
   return tokens;
 }
 
+/** The longest run of literal characters in a glob: every matching path contains it. */
+function longestLiteral(tokens) {
+  let best = '';
+  let run = '';
+  for (const token of tokens) {
+    run = typeof token === 'object' ? run + token.literal : '';
+    if (run.length > best.length) best = run;
+  }
+  return best;
+}
+
 /**
- * Matches a path against glob tokens in time proportional to their product.
- * Globs can come from a scanned repository's .half-fixed.json, so a regular
- * expression, which can backtrack exponentially on patterns like `**a**a**a`,
- * isn't safe here.
+ * Matches a path against glob tokens in time proportional to their product, and
+ * usually much less: a path without the glob's longest literal run is rejected
+ * at once, and the work stops as soon as no match is possible. Globs can come
+ * from a scanned repository's .half-fixed.json, so a regular expression, which
+ * can backtrack exponentially on patterns like `**a**a**a`, isn't safe here.
  */
-function matchTokens(tokens, path) {
+function matchCompiled({ tokens, literal }, path) {
+  if (!path.includes(literal)) return false;
   const n = path.length;
-  let next = new Array(n + 2).fill(false);
-  next[n] = true;
+  let next = new Uint8Array(n + 2);
+  next[n] = 1;
   for (let t = tokens.length - 1; t >= 0; t--) {
     const token = tokens[t];
-    const here = new Array(n + 2).fill(false);
-    let laterSlash = false;
+    const here = new Uint8Array(n + 2);
+    let laterSlash = 0;
+    let any = 0;
     for (let i = n; i >= 0; i--) {
       const ch = path[i];
       if (token === '**/') {
-        laterSlash ||= i < n && ch === '/' && next[i + 1];
+        laterSlash ||= i < n && ch === '/' && next[i + 1] ? 1 : 0;
         here[i] = next[i] || laterSlash;
       } else if (token === '**') {
-        here[i] = next[i] || (i < n && here[i + 1]);
+        here[i] = next[i] || (i < n && here[i + 1]) ? 1 : 0;
       } else if (token === '*') {
-        here[i] = next[i] || (i < n && ch !== '/' && here[i + 1]);
+        here[i] = next[i] || (i < n && ch !== '/' && here[i + 1]) ? 1 : 0;
       } else if (token === '?') {
-        here[i] = i < n && ch !== '/' && next[i + 1];
+        here[i] = i < n && ch !== '/' && next[i + 1] ? 1 : 0;
       } else {
-        here[i] = i < n && ch === token.literal && next[i + 1];
+        here[i] = i < n && ch === token.literal && next[i + 1] ? 1 : 0;
       }
+      any |= here[i];
     }
+    if (!any) return false;
     next = here;
   }
-  return next[0];
+  return next[0] === 1;
+}
+
+function compile(glob) {
+  const tokens = tokenize(glob);
+  return { tokens, literal: longestLiteral(tokens) };
 }
 
 export function globMatch(glob, path) {
-  return matchTokens(tokenize(glob), path);
+  return matchCompiled(compile(glob), path);
 }
 
 export function matcher(globs) {
-  const compiled = globs.map(tokenize);
-  return (path) => compiled.some((tokens) => matchTokens(tokens, path));
+  const compiled = globs.map(compile);
+  return (path) => compiled.some((glob) => matchCompiled(glob, path));
 }
+
+const MAX_PATH = 1024;
 
 function extOf(path) {
   const base = path.slice(path.lastIndexOf('/') + 1);
@@ -108,6 +131,9 @@ function extOf(path) {
  *   `src/Cache/RedisStore.php` -> `src/Cache/*Store.php`, member `Redis`.
  */
 export function keysFor(path) {
+  // Real source paths are far shorter. A longer one, which only a crafted tree
+  // can hold, would make the suffix match below quadratic.
+  if (path.length > MAX_PATH) return [];
   const keys = [];
   const segs = path.split('/');
   for (let i = 0; i < segs.length - 1; i++) {

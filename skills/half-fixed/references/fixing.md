@@ -4,7 +4,7 @@ Only start once triage gave the finding a `gap` verdict and the user wants it fi
 
 ## 1. Reproduce first
 
-Add a test to the sibling's existing test file, modelled on the test the original fix added. `git show <sha> --stat` lists the test files it touched. Run that test and confirm it fails, and that it fails for the reason triage gave, not because of a typo or a missing fixture.
+Add a test to the sibling's existing test file, modelled on the test the original fix added. `git show <sha> --stat` lists the test files it touched. Running it executes the project's code, so name the command and get the user's go-ahead first. Then run it and confirm it fails, and that it fails for the reason triage gave, not because of a typo or a missing fixture.
 
 If the project has no tests for that sibling, create the test file where its neighbours' tests live, following their naming and structure.
 
@@ -18,7 +18,7 @@ If the project has no tests for that sibling, create the test file where its nei
 
 Read the CI workflow (`.github/workflows/*`, or the CI config the project uses) and run the same commands locally: formatter, static analysis, tests. Keep any changes the formatter makes to your files. Don't reformat files you didn't touch.
 
-Those commands run the project's own code, including its install scripts and tests. In a repository the user doesn't trust, say what you're about to run and wait for a go-ahead.
+Those commands run the project's own code, including its install scripts and tests. In a repository the user doesn't maintain, name each command and wait for a go-ahead before running it.
 
 ## 4. Re-scan
 

@@ -71,7 +71,7 @@ npx skills add heyzainali/half-fixed   # or: bunx skills add heyzainali/half-fix
 
 Then ask your agent to **"Find half-fixed bugs in this repo"**.
 
-- **Only want the scanner?** Run `npx half-fixed scan` in any git repository. It needs Node 18 or newer and nothing else.
+- **Only want the scanner?** Run `npx half-fixed scan` in any git repository. It needs Node 18 or newer and nothing else. For a repository you don't control, start it from outside and pass the path, `npx half-fixed scan /path/to/repo`, because npx trusts the `node_modules` and `.npmrc` of the directory it starts in.
 - **Rather your agent did the install?** Paste the prompt below into it.
 
 <details>
@@ -181,7 +181,9 @@ In CI, the exit code is 1 when there are findings and 2 on an error:
 - uses: actions/checkout@v4
   with:
     fetch-depth: 0
-- run: npx half-fixed scan --base origin/${{ github.base_ref }} --confidence low
+- run: npx half-fixed@0 scan --base "origin/$BASE_REF" --confidence low
+  env:
+    BASE_REF: ${{ github.base_ref }}
 ```
 
 ## CLI
@@ -240,6 +242,9 @@ The scanner doesn't. It runs `git` locally and prints text. The skills are instr
 **How noisy is it?**
 In LiteLLM, about one high-confidence finding in five was a real bug, and the rest were deliberate or already handled (see [How accurate is it?](#how-accurate-is-it)). The skill is built around that. Things that differ on purpose, like locale files or backend feature flags, can be excluded or exempted once and they stay quiet.
 
+**Is it safe to scan a repository I don't trust?**
+That's the main use case, so the scanner treats everything in the repository as hostile. It runs only `git`, reads history and files without running any of the repository's code, and turns off the git features a repository's settings could use to start a program. Text from the repository is printed with invisible and terminal-control characters escaped. The scan is bounded for oversized files, lines, and configs. The skills tell your agent to ask before running the project's own install, test, or build commands. Report anything that gets past this as described in [SECURITY.md](SECURITY.md).
+
 **Which languages does it support?**
 Matching works on lines with whitespace ignored, so it doesn't parse any language. By default it scans source files in about thirty languages, including PHP, Python, Ruby, JavaScript, TypeScript, Go, Java, Kotlin, Rust, C, C++, C#, Swift, and Elixir. For anything else, list your files with `include` in `.half-fixed.json`.
 
@@ -265,7 +270,7 @@ bun run half-fixed -- scan /path/to/repo
 
 ## License
 
-half-fixed is released under the [MIT License](LICENSE).
+half-fixed is released under the [MIT License](LICENSE). Some build scripts are adapted from [danjdewhurst/story-skills](https://github.com/danjdewhurst/story-skills); see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 <div align="center">
 <br>

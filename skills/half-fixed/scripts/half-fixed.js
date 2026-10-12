@@ -5,6 +5,8 @@ import { createHash } from "node:crypto";
 
 // src/git.js
 import { execFileSync } from "node:child_process";
+import { accessSync, constants, statSync } from "node:fs";
+import { delimiter, isAbsolute, join, relative } from "node:path";
 
 // src/normalize.js
 function norm(line) {
@@ -55,13 +57,44 @@ function indexOfWindow(hay, window) {
 }
 
 // src/git.js
-var BASE = ["-c", "core.quotePath=false"];
-function git(cwd, args) {
-  return execFileSync("git", [...BASE, ...args], {
+var MAX_FILE_BYTES = 1024 * 1024;
+var BASE = ["-c", "core.quotePath=false", "-c", "core.bigFileThreshold=1m"];
+function isInside(dir, root) {
+  const rel = relative(root, dir);
+  return rel === "" || !rel.startsWith("..") && !isAbsolute(rel);
+}
+function isExecutableFile(path) {
+  try {
+    accessSync(path, constants.X_OK);
+    return statSync(path).isFile();
+  } catch {
+    return false;
+  }
+}
+function findGit(cwd, env = process.env, platform = process.platform) {
+  const name = platform === "win32" ? "git.exe" : "git";
+  for (const dir of (env.PATH || env.Path || "").split(delimiter)) {
+    if (!dir || !isAbsolute(dir) || dir.split(/[\\/]/).includes("node_modules") || isInside(dir, cwd))
+      continue;
+    const candidate = join(dir, name);
+    if (isExecutableFile(candidate))
+      return candidate;
+  }
+  throw new Error("git was not found on PATH");
+}
+var gitPaths = new Map;
+function gitFor(cwd) {
+  if (!gitPaths.has(cwd))
+    gitPaths.set(cwd, findGit(cwd));
+  return gitPaths.get(cwd);
+}
+function git(cwd, args, input) {
+  return execFileSync(gitFor(cwd), [...BASE, ...args], {
     cwd,
     encoding: "utf8",
+    input,
     maxBuffer: 1024 * 1024 * 512,
-    stdio: ["ignore", "pipe", "pipe"]
+    stdio: [input === undefined ? "ignore" : "pipe", "pipe", "pipe"]
   });
 }
 function tryGit(cwd, args) {
@@ -71,10 +104,10 @@ function tryGit(cwd, args) {
     return null;
   }
 }
-function gitLines(cwd, args) {
+function gitLines(cwd, args, input) {
   let out;
   try {
-    out = git(cwd, args);
+    out = git(cwd, args, input);
   } catch (error) {
     throw new Error(`git ${args[0]} failed: ${String(error.stderr || error.message).trim()}`);
   }
@@ -84,11 +117,18 @@ function gitLines(cwd, args) {
     lines.pop();
   return lines.map((line) => line.endsWith("\r") ? line.slice(0, -1) : line);
 }
+function rootError(cwd, stderr) {
+  if (/dubious ownership/.test(stderr)) {
+    return new Error(`git refuses to read ${cwd} because another user owns it. Make sure you trust it before adding it to git's safe.directory, and never add '*'.`);
+  }
+  return new Error(`not a git repository: ${cwd}`);
+}
 function repoRoot(cwd) {
-  const root = tryGit(cwd, ["rev-parse", "--show-toplevel"]);
-  if (root === null)
-    throw new Error(`not a git repository: ${cwd}`);
-  return root.trim();
+  try {
+    return git(cwd, ["rev-parse", "--show-toplevel"]).trim();
+  } catch (error) {
+    throw rootError(cwd, String(error.stderr || ""));
+  }
 }
 function resolveCommit(cwd, rev) {
   if (rev.startsWith("-"))
@@ -101,16 +141,29 @@ function resolveCommit(cwd, rev) {
 function isShallow(cwd) {
   return (tryGit(cwd, ["rev-parse", "--is-shallow-repository"]) || "").trim() === "true";
 }
+function listFiles(cwd, rev) {
+  const files = new Map;
+  for (const record of git(cwd, ["ls-tree", "-r", "-l", "-z", rev]).split("\x00")) {
+    const tab = record.indexOf("\t");
+    if (tab === -1)
+      continue;
+    const [, type, , size] = record.slice(0, tab).trim().split(/\s+/);
+    if (type === "blob")
+      files.set(record.slice(tab + 1), Number(size));
+  }
+  return files;
+}
 
 class RevReader {
-  constructor(cwd, rev) {
+  constructor(cwd, rev, sizes = new Map) {
     this.cwd = cwd;
     this.rev = rev;
+    this.sizes = sizes;
     this.cache = new Map;
   }
   read(path) {
     if (!this.cache.has(path)) {
-      const text = tryGit(this.cwd, ["show", `${this.rev}:${path}`]);
+      const text = (this.sizes.get(path) || 0) > MAX_FILE_BYTES ? null : tryGit(this.cwd, ["show", `${this.rev}:${path}`]);
       this.cache.set(path, text === null ? null : normalizeText(text));
     }
     return this.cache.get(path);
@@ -333,43 +386,66 @@ function tokenize(glob) {
   }
   return tokens;
 }
-function matchTokens(tokens, path) {
+function longestLiteral(tokens) {
+  let best = "";
+  let run = "";
+  for (const token of tokens) {
+    run = typeof token === "object" ? run + token.literal : "";
+    if (run.length > best.length)
+      best = run;
+  }
+  return best;
+}
+function matchCompiled({ tokens, literal }, path) {
+  if (!path.includes(literal))
+    return false;
   const n = path.length;
-  let next = new Array(n + 2).fill(false);
-  next[n] = true;
+  let next = new Uint8Array(n + 2);
+  next[n] = 1;
   for (let t = tokens.length - 1;t >= 0; t--) {
     const token = tokens[t];
-    const here = new Array(n + 2).fill(false);
-    let laterSlash = false;
+    const here = new Uint8Array(n + 2);
+    let laterSlash = 0;
+    let any = 0;
     for (let i = n;i >= 0; i--) {
       const ch = path[i];
       if (token === "**/") {
-        laterSlash ||= i < n && ch === "/" && next[i + 1];
+        laterSlash ||= i < n && ch === "/" && next[i + 1] ? 1 : 0;
         here[i] = next[i] || laterSlash;
       } else if (token === "**") {
-        here[i] = next[i] || i < n && here[i + 1];
+        here[i] = next[i] || i < n && here[i + 1] ? 1 : 0;
       } else if (token === "*") {
-        here[i] = next[i] || i < n && ch !== "/" && here[i + 1];
+        here[i] = next[i] || i < n && ch !== "/" && here[i + 1] ? 1 : 0;
       } else if (token === "?") {
-        here[i] = i < n && ch !== "/" && next[i + 1];
+        here[i] = i < n && ch !== "/" && next[i + 1] ? 1 : 0;
       } else {
-        here[i] = i < n && ch === token.literal && next[i + 1];
+        here[i] = i < n && ch === token.literal && next[i + 1] ? 1 : 0;
       }
+      any |= here[i];
     }
+    if (!any)
+      return false;
     next = here;
   }
-  return next[0];
+  return next[0] === 1;
+}
+function compile(glob) {
+  const tokens = tokenize(glob);
+  return { tokens, literal: longestLiteral(tokens) };
 }
 function matcher(globs) {
-  const compiled = globs.map(tokenize);
-  return (path) => compiled.some((tokens) => matchTokens(tokens, path));
+  const compiled = globs.map(compile);
+  return (path) => compiled.some((glob) => matchCompiled(glob, path));
 }
+var MAX_PATH = 1024;
 function extOf(path) {
   const base = path.slice(path.lastIndexOf("/") + 1);
   const dot = base.lastIndexOf(".");
   return dot > 0 ? base.slice(dot + 1).toLowerCase() : "";
 }
 function keysFor(path) {
+  if (path.length > MAX_PATH)
+    return [];
   const keys = [];
   const segs = path.split("/");
   for (let i = 0;i < segs.length - 1; i++) {
@@ -414,27 +490,47 @@ function discoverGroups(files, { minMembers = 3, include = [], exclude = [] } = 
 }
 
 // src/config.js
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { lstatSync, readFileSync } from "node:fs";
+import { join as join2 } from "node:path";
 var CONFIG_FILE = ".half-fixed.json";
-var globs = (value) => Array.isArray(value) ? value.filter((g) => typeof g === "string" && g.length > 0 && g.length <= 512) : [];
-var count = (value) => Number.isInteger(value) && value > 0 ? value : undefined;
+var MAX_CONFIG_BYTES = 256 * 1024;
+var MAX_GLOBS = 50;
+var MAX_GLOB_LENGTH = 200;
+var MAX_REASON_LENGTH = 500;
+var isText = (value) => typeof value === "string" && value.length > 0;
+var globs = (value) => Array.isArray(value) ? value.filter((g) => isText(g) && g.length <= MAX_GLOB_LENGTH).slice(0, MAX_GLOBS) : [];
+var count = (value, max) => Number.isInteger(value) && value > 0 && value <= max ? value : undefined;
+function exemption(raw) {
+  if (!raw || !isText(raw.id))
+    return null;
+  const reason = typeof raw.reason === "string" ? raw.reason.replace(/\s+/g, " ").trim().slice(0, MAX_REASON_LENGTH) : "";
+  const members = Array.isArray(raw.members) ? raw.members.filter(isText) : undefined;
+  return { id: raw.id, members, reason };
+}
 function loadConfig(root) {
-  const path = join(root, CONFIG_FILE);
-  if (!existsSync(path))
+  const path = join2(root, CONFIG_FILE);
+  let stat;
+  try {
+    stat = lstatSync(path);
+  } catch {
     return { include: [], exclude: [], exempt: [] };
+  }
+  if (!stat.isFile())
+    throw new Error(`${CONFIG_FILE} must be a regular file, not a symlink or a directory`);
+  if (stat.size > MAX_CONFIG_BYTES)
+    throw new Error(`${CONFIG_FILE} is larger than ${MAX_CONFIG_BYTES / 1024} KiB`);
   let raw;
   try {
     raw = JSON.parse(readFileSync(path, "utf8"));
-  } catch (err) {
-    throw new Error(`${CONFIG_FILE}: ${err.message}`);
+  } catch {
+    throw new Error(`${CONFIG_FILE} is not valid JSON`);
   }
   return {
-    minMembers: count(raw?.minMembers),
-    maxCommits: count(raw?.maxCommits),
+    minMembers: count(raw?.minMembers, 1000),
+    maxCommits: count(raw?.maxCommits, 1e6),
     include: globs(raw?.include),
     exclude: globs(raw?.exclude),
-    exempt: Array.isArray(raw?.exempt) ? raw.exempt.filter((e) => e && typeof e.id === "string") : []
+    exempt: Array.isArray(raw?.exempt) ? raw.exempt.map(exemption).filter(Boolean) : []
   };
 }
 
@@ -474,10 +570,14 @@ function confidenceOf(finding) {
   return LEVELS[level];
 }
 var STRING = /'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`/g;
+var MAX_LINE = 2000;
+var MAX_BLOCKS = 200;
 var IDENT = /(->|\.|::)?([A-Za-z_$][\w$]*)/g;
 function identifiers(lines) {
   const counts = new Map;
   for (const line of lines) {
+    if (line.length > MAX_LINE)
+      continue;
     for (const m of line.replace(STRING, '""').matchAll(IDENT)) {
       if (m[1])
         continue;
@@ -508,15 +608,14 @@ function groupsAt(root, config, options) {
   const rev = options.rev || "HEAD";
   const commit = resolveCommit(root, rev);
   const minMembers = options.minMembers || config.minMembers || 3;
-  const files = git(root, ["ls-tree", "-r", "--name-only", commit]).split(`
-`).filter(Boolean);
-  const groups = discoverGroups(files, { minMembers, include: config.include, exclude: config.exclude });
+  const sizes = listFiles(root, commit);
+  const groups = discoverGroups([...sizes.keys()], { minMembers, include: config.include, exclude: config.exclude });
   if (options.group) {
     for (const pattern of [...groups.keys()])
       if (!pattern.includes(options.group))
         groups.delete(pattern);
   }
-  return { rev, commit, groups };
+  return { rev, commit, groups, sizes };
 }
 function listGroups(cwd, options = {}) {
   const root = repoRoot(cwd);
@@ -530,7 +629,7 @@ function listGroups(cwd, options = {}) {
 async function scan(cwd, options = {}) {
   const root = repoRoot(cwd);
   const config = loadConfig(root);
-  const { rev, commit: head, groups } = groupsAt(root, config, options);
+  const { rev, commit: head, groups, sizes } = groupsAt(root, config, options);
   const base = options.base ? resolveCommit(root, options.base) : null;
   const maxCommits = options.maxCommits || config.maxCommits || 5000;
   const warnings = [];
@@ -539,13 +638,31 @@ async function scan(cwd, options = {}) {
   const result = { root, rev, base: options.base || null, commitsScanned: 0, groupsScanned: groups.size, warnings, findings: [], dismissed: [] };
   if (groups.size === 0)
     return result;
-  const reader = new RevReader(root, head);
+  const reader = new RevReader(root, head, sizes);
   const findings = new Map;
-  const args = ["log", "--no-merges", "--no-renames", "--no-color", "--no-ext-diff", "--no-textconv", "-U3", "--date=short", LOG_FORMAT, "-p", `--max-count=${maxCommits}`];
+  const args = [
+    "log",
+    "--stdin",
+    "--no-merges",
+    "--no-renames",
+    "--no-color",
+    "--no-ext-diff",
+    "--no-textconv",
+    "--no-show-signature",
+    "--src-prefix=a/",
+    "--dst-prefix=b/",
+    "-U3",
+    "--date=short",
+    LOG_FORMAT,
+    "-p",
+    `--max-count=${maxCommits}`
+  ];
   if (options.since)
     args.push(`--since=${options.since}`);
-  args.push(base ? `${base}..${head}` : head, "--", ...[...groups.keys()].map((p) => `:(glob)${p}`));
-  for await (const commit of parseLog(gitLines(root, args))) {
+  const input = [base ? `${base}..${head}` : head, "--", ...[...groups.keys()].map((p) => `:(glob)${p}`)].join(`
+`);
+  for await (const commit of parseLog(gitLines(root, args, `${input}
+`))) {
     result.commitsScanned++;
     const fix = isFixCommit(commit.subject);
     const touched = new Map;
@@ -574,6 +691,8 @@ async function scan(cwd, options = {}) {
           continue;
         for (const hunk of file.hunks) {
           const { blocks, newSide } = changeBlocks(hunk);
+          if (blocks.length > MAX_BLOCKS)
+            continue;
           for (const block of blocks) {
             const window = pickWindow(block, newSide);
             if (!window)
@@ -647,9 +766,25 @@ function palette(color) {
   const paint = (code) => (s) => color ? `\x1B[${code}m${s}\x1B[0m` : String(s);
   return { red: paint(31), green: paint(32), yellow: paint(33), dim: paint(2), bold: paint(1) };
 }
-var UNSAFE = /[\u0000-\u0008\u000b-\u001f\u007f-\u009f\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/g;
-function safe(value) {
-  return String(value).replace(UNSAFE, (ch) => `\\u${ch.charCodeAt(0).toString(16).padStart(4, "0")}`);
+var UNSAFE = /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}\p{Variation_Selector}]/gu;
+function escapeCodePoint(ch) {
+  const code = ch.codePointAt(0);
+  return code > 65535 ? `\\u{${code.toString(16)}}` : `\\u${code.toString(16).padStart(4, "0")}`;
+}
+function safe(value, { multiline = false } = {}) {
+  return String(value).replace(UNSAFE, (ch) => ch === "\t" || multiline && ch === `
+` ? ch : escapeCodePoint(ch));
+}
+function safeJson(value) {
+  return JSON.stringify(value, null, 2).replace(UNSAFE, (ch) => {
+    if (ch === `
+`)
+      return ch;
+    let out = "";
+    for (let i = 0;i < ch.length; i++)
+      out += `\\u${ch.charCodeAt(i).toString(16).padStart(4, "0")}`;
+    return out;
+  });
 }
 var plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 function changedLines(finding) {
@@ -781,18 +916,20 @@ var VALUED = {
   "--confidence": "confidence"
 };
 var NUMERIC = new Set(["maxCommits", "minMembers"]);
+var MAX_NUMBER = 1e6;
 function parseArgs(argv) {
   const opts = { _: [] };
   for (let i = 0;i < argv.length; i++) {
     const arg = argv[i];
     const [flag, inline] = arg.startsWith("--") ? arg.split(/=(.*)/s) : [arg];
-    const key = VALUED[flag];
+    const key = Object.hasOwn(VALUED, flag) ? VALUED[flag] : undefined;
     if (key) {
       const value = inline !== undefined ? inline : argv[++i];
       if (value === undefined)
         throw new Error(`${flag} needs a value`);
-      if (NUMERIC.has(key) && !/^[1-9]\d*$/.test(value))
-        throw new Error(`${flag} must be a positive whole number`);
+      if (NUMERIC.has(key) && !(/^[1-9]\d{0,6}$/.test(value) && Number(value) <= MAX_NUMBER)) {
+        throw new Error(`${flag} must be a whole number from 1 to ${MAX_NUMBER}`);
+      }
       opts[key] = NUMERIC.has(key) ? Number(value) : value;
     } else if (flag === "--all")
       opts.all = true;
@@ -823,7 +960,7 @@ async function dispatch(opts, { cwd, out, color }) {
     const all = result.findings.length;
     result.findings = result.findings.filter((f) => LEVELS.indexOf(f.confidence) <= LEVELS.indexOf(level));
     result.hidden = all - result.findings.length;
-    out(opts.json ? JSON.stringify(result, null, 2) : renderScan(result, { color }));
+    out(opts.json ? safeJson(result) : renderScan(result, { color }));
     return result.findings.length ? EXIT.FINDINGS : EXIT.CLEAN;
   }
   if (command === "show") {
@@ -836,14 +973,14 @@ async function dispatch(opts, { cwd, out, color }) {
     if (!found && !dismissed)
       throw new Error(`no finding ${id} at ${result.rev}`);
     if (opts.json)
-      out(JSON.stringify(found || dismissed, null, 2));
+      out(safeJson(found || dismissed));
     else
       out(found ? renderShow(found, undefined, { color }) : renderShow(dismissed, dismissed.reason, { color }));
     return EXIT.CLEAN;
   }
   if (command === "groups") {
     const result = listGroups(rest[0] || cwd, opts);
-    out(opts.json ? JSON.stringify(result, null, 2) : renderGroups(result, { color }));
+    out(opts.json ? safeJson(result) : renderGroups(result, { color }));
     return EXIT.CLEAN;
   }
   throw new Error(`unknown command ${command}, see half-fixed --help`);
@@ -855,7 +992,7 @@ async function runCli(argv, { cwd, stdout, stderr, env = process.env }) {
   try {
     return await dispatch(parseArgs(argv), { cwd, out, color });
   } catch (error) {
-    stderr.write(`half-fixed: ${error.message}
+    stderr.write(`half-fixed: ${safe(error.message, { multiline: true })}
 `);
     return EXIT.ERROR;
   }
@@ -866,7 +1003,7 @@ function handleOutputError(error, proc) {
     return;
   }
   try {
-    proc.stderr.write(`half-fixed: ${error && error.message ? error.message : error}
+    proc.stderr.write(`half-fixed: ${safe(error && error.message ? error.message : error, { multiline: true })}
 `);
   } finally {
     proc.exit(EXIT.ERROR);

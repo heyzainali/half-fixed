@@ -1,5 +1,5 @@
 import { LEVELS, listGroups, scan } from './scan.js';
-import { renderGroups, renderScan, renderShow } from './report.js';
+import { renderGroups, renderScan, renderShow, safe, safeJson } from './report.js';
 import { VERSION } from './version.js';
 
 export const EXIT = { CLEAN: 0, FINDINGS: 1, ERROR: 2 };
@@ -38,17 +38,20 @@ const VALUED = {
   '--confidence': 'confidence',
 };
 const NUMERIC = new Set(['maxCommits', 'minMembers']);
+const MAX_NUMBER = 1_000_000;
 
 export function parseArgs(argv) {
   const opts = { _: [] };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     const [flag, inline] = arg.startsWith('--') ? arg.split(/=(.*)/s) : [arg];
-    const key = VALUED[flag];
+    const key = Object.hasOwn(VALUED, flag) ? VALUED[flag] : undefined;
     if (key) {
       const value = inline !== undefined ? inline : argv[++i];
       if (value === undefined) throw new Error(`${flag} needs a value`);
-      if (NUMERIC.has(key) && !/^[1-9]\d*$/.test(value)) throw new Error(`${flag} must be a positive whole number`);
+      if (NUMERIC.has(key) && !(/^[1-9]\d{0,6}$/.test(value) && Number(value) <= MAX_NUMBER)) {
+        throw new Error(`${flag} must be a whole number from 1 to ${MAX_NUMBER}`);
+      }
       opts[key] = NUMERIC.has(key) ? Number(value) : value;
     } else if (flag === '--all') opts.all = true;
     else if (flag === '--json') opts.json = true;
@@ -72,7 +75,7 @@ async function dispatch(opts, { cwd, out, color }) {
     const all = result.findings.length;
     result.findings = result.findings.filter((f) => LEVELS.indexOf(f.confidence) <= LEVELS.indexOf(level));
     result.hidden = all - result.findings.length;
-    out(opts.json ? JSON.stringify(result, null, 2) : renderScan(result, { color }));
+    out(opts.json ? safeJson(result) : renderScan(result, { color }));
     return result.findings.length ? EXIT.FINDINGS : EXIT.CLEAN;
   }
 
@@ -83,14 +86,14 @@ async function dispatch(opts, { cwd, out, color }) {
     const found = result.findings.find((f) => f.id === id);
     const dismissed = result.dismissed.find((f) => f.id === id);
     if (!found && !dismissed) throw new Error(`no finding ${id} at ${result.rev}`);
-    if (opts.json) out(JSON.stringify(found || dismissed, null, 2));
+    if (opts.json) out(safeJson(found || dismissed));
     else out(found ? renderShow(found, undefined, { color }) : renderShow(dismissed, dismissed.reason, { color }));
     return EXIT.CLEAN;
   }
 
   if (command === 'groups') {
     const result = listGroups(rest[0] || cwd, opts);
-    out(opts.json ? JSON.stringify(result, null, 2) : renderGroups(result, { color }));
+    out(opts.json ? safeJson(result) : renderGroups(result, { color }));
     return EXIT.CLEAN;
   }
 
@@ -107,7 +110,7 @@ export async function runCli(argv, { cwd, stdout, stderr, env = process.env }) {
   try {
     return await dispatch(parseArgs(argv), { cwd, out, color });
   } catch (error) {
-    stderr.write(`half-fixed: ${error.message}\n`);
+    stderr.write(`half-fixed: ${safe(error.message, { multiline: true })}\n`);
     return EXIT.ERROR;
   }
 }
@@ -122,7 +125,7 @@ export function handleOutputError(error, proc) {
     return;
   }
   try {
-    proc.stderr.write(`half-fixed: ${error && error.message ? error.message : error}\n`);
+    proc.stderr.write(`half-fixed: ${safe(error && error.message ? error.message : error, { multiline: true })}\n`);
   } finally {
     proc.exit(EXIT.ERROR);
   }

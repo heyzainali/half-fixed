@@ -7,7 +7,7 @@ For each finding, decide whether the missing siblings really need the change. Wo
 ```bash
 node <this-skill-dir>/scripts/half-fixed.js show <id>
 git show <sha>                 # the whole commit, tests included
-gh pr view <number>            # when the subject ends in (#123) and gh is available
+gh pr view <number>            # when the subject ends in (#123) and gh is available; digits only
 ```
 
 Write one sentence: "When X happens, the old code does Y; the fix makes it do Z." If the commit is a feature or a refactor rather than a fix, say so. Those are usually `intentional` or `obsolete`.

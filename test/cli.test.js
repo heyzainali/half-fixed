@@ -59,7 +59,7 @@ describe('cli', () => {
     expect((await cli(r.dir, 'frobnicate')).stderr).toContain('unknown command frobnicate');
     expect((await cli(r.dir, '--nope')).stderr).toContain('unknown option --nope');
     expect((await cli(r.dir, '--rev')).stderr).toContain('--rev needs a value');
-    expect((await cli(r.dir, '--max-commits', '0')).stderr).toContain('positive whole number');
+    expect((await cli(r.dir, '--max-commits', '0')).stderr).toContain('whole number from 1 to 1000000');
     const outside = await cli(tempDir(), 'scan');
     expect(outside.code).toBe(EXIT.ERROR);
     expect(outside.stderr).toContain('not a git repository');

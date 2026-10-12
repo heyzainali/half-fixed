@@ -41,9 +41,11 @@ Look mostly at PRs from outside contributors, since maintainers often skip their
 ## 3. Check for overlap
 
 ```bash
-gh pr list --repo OWNER/REPO --state open --search "<keywords>"
-gh issue list --repo OWNER/REPO --state all --search "<keywords>"
+gh pr list --repo OWNER/REPO --state open --search '<keywords>'
+gh issue list --repo OWNER/REPO --state all --search '<keywords>'
 ```
+
+The keywords usually come from commit messages, which the repository's authors wrote, so keep them to plain words and drop any quote characters before putting them in the command.
 
 If an open PR already covers part of the change, tell the user before going further. If they still want to proceed, mention that PR in the description and say how the two relate. Only use `Closes #N` when the issue describes this exact bug. Read the issue before adding the link.
 
@@ -55,7 +57,7 @@ The diff should do one thing. Don't reformat lines you didn't change, rename thi
 
 Read the CI workflows and run the same commands locally. Keep whatever the formatter changes in your files. Report anything that fails and you couldn't fix. Don't hide it.
 
-Those commands run the project's own code, including its install scripts and tests. In a repository the user doesn't trust, say what you're about to run and wait for a go-ahead.
+Those commands run the project's own code, including its install scripts and tests. In a repository the user doesn't maintain, name each command and wait for a go-ahead before running it.
 
 ## 6. Draft
 

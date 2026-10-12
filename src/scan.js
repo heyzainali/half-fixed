@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { RevReader, git, gitLines, isShallow, repoRoot, resolveCommit } from './git.js';
+import { RevReader, gitLines, isShallow, listFiles, repoRoot, resolveCommit } from './git.js';
 import { LOG_FORMAT, changeBlocks, parseLog, pickWindow } from './diff.js';
 import { discoverGroups, keysFor } from './groups.js';
 import { indexOfWindow } from './normalize.js';
@@ -51,6 +51,12 @@ function confidenceOf(finding) {
 }
 
 const STRING = /'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`/g;
+// STRING backtracks quadratically on an unterminated literal, and a line this
+// long is minified or generated code anyway, so it contributes no names.
+const MAX_LINE = 2000;
+// A hunk this fragmented is a bulk rewrite, not a fix to carry to a sibling,
+// and matching every block against every sibling would take quadratic time.
+const MAX_BLOCKS = 200;
 const IDENT = /(->|\.|::)?([A-Za-z_$][\w$]*)/g;
 
 /**
@@ -61,6 +67,7 @@ const IDENT = /(->|\.|::)?([A-Za-z_$][\w$]*)/g;
 function identifiers(lines) {
   const counts = new Map();
   for (const line of lines) {
+    if (line.length > MAX_LINE) continue;
     for (const m of line.replace(STRING, '""').matchAll(IDENT)) {
       if (m[1]) continue;
       counts.set(m[2], (counts.get(m[2]) || 0) + 1);
@@ -96,12 +103,12 @@ function groupsAt(root, config, options) {
   const rev = options.rev || 'HEAD';
   const commit = resolveCommit(root, rev);
   const minMembers = options.minMembers || config.minMembers || 3;
-  const files = git(root, ['ls-tree', '-r', '--name-only', commit]).split('\n').filter(Boolean);
-  const groups = discoverGroups(files, { minMembers, include: config.include, exclude: config.exclude });
+  const sizes = listFiles(root, commit);
+  const groups = discoverGroups([...sizes.keys()], { minMembers, include: config.include, exclude: config.exclude });
   if (options.group) {
     for (const pattern of [...groups.keys()]) if (!pattern.includes(options.group)) groups.delete(pattern);
   }
-  return { rev, commit, groups };
+  return { rev, commit, groups, sizes };
 }
 
 export function listGroups(cwd, options = {}) {
@@ -122,7 +129,7 @@ export function listGroups(cwd, options = {}) {
 export async function scan(cwd, options = {}) {
   const root = repoRoot(cwd);
   const config = loadConfig(root);
-  const { rev, commit: head, groups } = groupsAt(root, config, options);
+  const { rev, commit: head, groups, sizes } = groupsAt(root, config, options);
   const base = options.base ? resolveCommit(root, options.base) : null;
   const maxCommits = options.maxCommits || config.maxCommits || 5000;
   const warnings = [];
@@ -131,13 +138,19 @@ export async function scan(cwd, options = {}) {
   const result = { root, rev, base: options.base || null, commitsScanned: 0, groupsScanned: groups.size, warnings, findings: [], dismissed: [] };
   if (groups.size === 0) return result;
 
-  const reader = new RevReader(root, head);
+  const reader = new RevReader(root, head, sizes);
   const findings = new Map();
-  const args = ['log', '--no-merges', '--no-renames', '--no-color', '--no-ext-diff', '--no-textconv', '-U3', '--date=short', LOG_FORMAT, '-p', `--max-count=${maxCommits}`];
+  // Nothing in the repository's config may start a program or change the diff
+  // format the parser expects. Revisions and pathspecs go in on stdin, so a
+  // repository with many sibling groups can't overflow the argument list.
+  const args = [
+    'log', '--stdin', '--no-merges', '--no-renames', '--no-color', '--no-ext-diff', '--no-textconv', '--no-show-signature',
+    '--src-prefix=a/', '--dst-prefix=b/', '-U3', '--date=short', LOG_FORMAT, '-p', `--max-count=${maxCommits}`,
+  ];
   if (options.since) args.push(`--since=${options.since}`);
-  args.push(base ? `${base}..${head}` : head, '--', ...[...groups.keys()].map((p) => `:(glob)${p}`));
+  const input = [base ? `${base}..${head}` : head, '--', ...[...groups.keys()].map((p) => `:(glob)${p}`)].join('\n');
 
-  for await (const commit of parseLog(gitLines(root, args))) {
+  for await (const commit of parseLog(gitLines(root, args, `${input}\n`))) {
     result.commitsScanned++;
     const fix = isFixCommit(commit.subject);
 
@@ -164,6 +177,7 @@ export async function scan(cwd, options = {}) {
 
         for (const hunk of file.hunks) {
           const { blocks, newSide } = changeBlocks(hunk);
+          if (blocks.length > MAX_BLOCKS) continue;
           for (const block of blocks) {
             const window = pickWindow(block, newSide);
             if (!window) continue;
