@@ -58,6 +58,20 @@ script(() => {
     }
   }
 
+  // The Codex listing fits OpenAI's plugin directory limits, and its images exist.
+  const listing = readJson('.codex-plugin/plugin.json').interface || {};
+  for (const [field, limit] of [['displayName', 30], ['shortDescription', 30], ['longDescription', 4000]]) {
+    const text = listing[field];
+    if (typeof text !== 'string' || text.trim() === '') problems.push(`.codex-plugin/plugin.json interface.${field} is missing`);
+    else if (text.length > limit) problems.push(`.codex-plugin/plugin.json interface.${field} is ${text.length} characters, the limit is ${limit}`);
+  }
+  for (const field of ['logo', 'composerIcon']) {
+    const image = listing[field];
+    if (typeof image !== 'string' || !image.startsWith('./') || !existsSync(join(ROOT, image))) {
+      problems.push(`.codex-plugin/plugin.json interface.${field} should be a ./ path to an image in the repository, got ${JSON.stringify(image)}`);
+    }
+  }
+
   // The bundle is an ES module, and a copied skill may land under a CommonJS package.json.
   same('skills/half-fixed/scripts/package.json "type"', readJson('skills/half-fixed/scripts/package.json').type, 'module');
 

@@ -9,6 +9,12 @@
 //
 //   chrome --headless=new --hide-scrollbars --window-size=1280,640 \
 //     --screenshot=assets/readme/social-preview.png assets/readme/social-preview.svg
+//
+// And assets/logo.svg, the square plugin icon. Plugin directories want a PNG
+// too, so convert it at 512x512 the same way:
+//
+//   chrome --headless=new --hide-scrollbars --window-size=512,512 \
+//     --screenshot=assets/logo.png assets/logo.svg
 import { createHash } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -42,6 +48,29 @@ function hero(t) {
   <text x="${width / 2}" y="72" text-anchor="middle" font-family='${MONO}' font-size="60" font-weight="700" fill="${t.fg}">half<tspan fill="${t.old}">-</tspan>fixed</text>
   ${squares}
   <text x="${width / 2}" y="150" text-anchor="middle" font-family='${MONO}' font-size="13" fill="${t.muted}"><tspan fill="${t.fixed}">fixed in 2 of 10</tspan>, <tspan fill="${t.old}">still old in 4</tspan></text>
+</svg>
+`;
+}
+
+// Two fixed siblings over two still-old ones, in the hero's colors. Full bleed,
+// because directories round the corners themselves.
+function logo(t) {
+  const size = 512;
+  const cell = 150;
+  const gap = 44;
+  const start = (size - (2 * cell + gap)) / 2;
+  const stroke = 24;
+  const at = (i) => start + i * (cell + gap);
+  const fixed = (col) => `<rect x="${at(col)}" y="${at(0)}" width="${cell}" height="${cell}" rx="32" fill="${t.fixed}"/>`;
+  const old = (col) =>
+    `<rect x="${at(col) + stroke / 2}" y="${at(1) + stroke / 2}" width="${cell - stroke}" height="${cell - stroke}" rx="${32 - stroke / 2}" fill="none" stroke="${t.old}" stroke-width="${stroke}"/>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-labelledby="title">
+  <title id="title">half-fixed</title>
+  <rect width="${size}" height="${size}" fill="#0d1117"/>
+  ${fixed(0)}
+  ${fixed(1)}
+  ${old(0)}
+  ${old(1)}
 </svg>
 `;
 }
@@ -257,10 +286,11 @@ function diagram(t) {
 
 mkdirSync(OUT_DIR, { recursive: true });
 writeFileSync(path.join(OUT_DIR, "social-preview.svg"), social(THEMES.dark));
+writeFileSync(path.join(repoRoot, "assets", "logo.svg"), logo(THEMES.dark));
 for (const [name, theme] of Object.entries(THEMES)) {
   writeFileSync(path.join(OUT_DIR, `hero-${name}.svg`), hero(theme));
   writeFileSync(path.join(OUT_DIR, `how-it-works-${name}.svg`), diagram(theme));
   writeFileSync(path.join(OUT_DIR, `stats-${name}.svg`), stats(theme));
   writeFileSync(path.join(OUT_DIR, `report-${name}.svg`), report(theme));
 }
-console.log(`Wrote the hero, stats strip, report, and diagram to ${path.relative(repoRoot, OUT_DIR)}.`);
+console.log(`Wrote the hero, stats strip, report, and diagram to ${path.relative(repoRoot, OUT_DIR)}, and assets/logo.svg.`);

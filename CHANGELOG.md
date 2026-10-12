@@ -6,6 +6,14 @@ Add an entry under `## [Unreleased]` in the same pull request as any change a us
 
 ## [Unreleased]
 
+### Added
+
+- The Codex plugin has a logo, two fixed siblings over two that still have the old code.
+
+### Changed
+
+- The Codex plugin's short description is now "Find half-applied bug fixes", which fits the 30-character limit of OpenAI's plugin directory.
+
 ## [0.1.1] - 2026-10-12
 
 ### Security

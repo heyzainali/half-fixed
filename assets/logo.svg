@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">half-fixed</title>
+  <rect width="512" height="512" fill="#0d1117"/>
+  <rect x="84" y="84" width="150" height="150" rx="32" fill="#3fb950"/>
+  <rect x="278" y="84" width="150" height="150" rx="32" fill="#3fb950"/>
+  <rect x="96" y="290" width="126" height="126" rx="20" fill="none" stroke="#f0883e" stroke-width="24"/>
+  <rect x="290" y="290" width="126" height="126" rx="20" fill="none" stroke="#f0883e" stroke-width="24"/>
+</svg>

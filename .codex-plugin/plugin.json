@@ -13,7 +13,7 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "half-fixed",
-    "shortDescription": "Find fixes that only reached some sibling implementations.",
+    "shortDescription": "Find half-applied bug fixes",
     "longDescription": "half-fixed scans git history for changes made to some members of a sibling group (provider adapters, drivers, stores, platform ports) while the others still contain the old code. The agent triages each finding, fixes confirmed gaps with tests, and drafts pull requests in the target repository's own style.",
     "developerName": "Zain Ali",
     "category": "Coding",
@@ -24,6 +24,8 @@
       "Check this branch for changes I only made to some siblings.",
       "Draft a PR for this fix in the project's style."
     ],
-    "websiteURL": "https://github.com/heyzainali/half-fixed"
+    "websiteURL": "https://github.com/heyzainali/half-fixed",
+    "composerIcon": "./assets/logo.png",
+    "logo": "./assets/logo.png"
   }
 }
