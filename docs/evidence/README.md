@@ -13,9 +13,10 @@ Runs were made on 1 October 2026 with the bundled CLI (`skills/half-fixed/script
 | [django/django](https://github.com/django/django) | database backends, locales | [`80ea222`](https://github.com/django/django/tree/80ea222c8af501031b2eae4f7d9fdbf16cb507a7) | 563 | 52 | 7 | 3 s |
 | [rails/rails](https://github.com/rails/rails) | associations, cache stores, database adapters | [`e168c98`](https://github.com/rails/rails/tree/e168c98ca29d524440a431c0c17c5a8ed1097e56) | 1,569 | 60 | 3 | 5 s |
 | [BerriAI/litellm](https://github.com/BerriAI/litellm) | 100+ LLM providers, 50+ guardrails | [`a14af73`](https://github.com/BerriAI/litellm/tree/a14af739a48a8356963273d78900bf995704c253) | 5,000 | 326 | 62 | 59 s |
+| [BerriAI/litellm](https://github.com/BerriAI/litellm), second run | 100+ LLM providers, 50+ guardrails | [`b6d587d`](https://github.com/BerriAI/litellm/tree/b6d587d23e1c104340a905b45cb4027d7153a0ad) | 5,000 | 339 | 66 | 69 s |
 | [knex/knex](https://github.com/knex/knex) | SQL dialects | [`e25d54b`](https://github.com/knex/knex/tree/e25d54bcb707714a17f5a5744eba5c4246bb4d1d) | 27 | 2 | 0 | <1 s |
 
-"Commits read" counts only commits that touched a sibling group. Prism was scanned with its full history. The others were cloned with history since 1 January 2023 (`--shallow-since=2023-01-01`), and litellm reached the default cap of 5,000 commits.
+"Commits read" counts only commits that touched a sibling group. Prism was scanned with its full history. The others were cloned with history since 1 January 2023 (`--shallow-since=2023-01-01`), and litellm reached the default cap of 5,000 commits. litellm was scanned a second time on 6 October 2026, at `b6d587d`, and every high-confidence finding from that run was checked; see [litellm, every finding checked](#litellm-every-finding-checked).
 
 Knex is the counter-example: each dialect's files carry the dialect's name (`mysql-querycompiler.js`, `pg-querycompiler.js`), so half-fixed, which groups files by path, finds almost no siblings there.
 
@@ -39,6 +40,25 @@ Each finding was triaged the way the [`half-fixed` skill](../../skills/half-fixe
 The tally: **one real gap** (now a pull request), **one unfinished cleanup**, **one unsure**, and **seven deliberate differences**, cases handled another way, or no difference in behaviour.
 
 That ratio is the reason half-fixed is a skill and not an auto-fixer. In mature, well-reviewed projects, most differences between siblings are on purpose. The scanner's job is to turn thousands of commits into a short list worth reading. The agent's job is to read it and back every verdict with evidence.
+
+## litellm, every finding checked
+
+The second litellm run, at [`b6d587d`](https://github.com/BerriAI/litellm/tree/b6d587d23e1c104340a905b45cb4027d7153a0ad), produced 66 high-confidence findings. Each one was checked the same way as the ten above: read the original commit and the pull request it came from, read the sibling's code at that revision, and check the provider's API documentation where the verdict depended on it.
+
+| Verdict | Findings |
+|---|---:|
+| Gap | 13 |
+| Obsolete | 29 |
+| Handled elsewhere | 11 |
+| Intentional | 12 |
+| Unsure | 1 |
+
+Some findings are the same underlying change seen in different siblings, so the 13 gaps come down to eleven distinct bugs. Two of the clearest were confirmed end to end on a running proxy, before and after the fix, and are now pull requests:
+
+- **`hf-9d64e6d`.** [#42437](https://github.com/BerriAI/litellm/pull/42437) made `disable_custom_api_keys` read from `general_settings`, so a value set in `config.yaml` is enforced. `scope_user_search_to_org`, the flag beside it, still read only the stored UI settings. With it set in `config.yaml`, the settings API reported it as on, yet any internal user could still search every user on the proxy. Fixed in [BerriAI/litellm#44925](https://github.com/BerriAI/litellm/pull/44925).
+- **`hf-e7d47fa`.** [`df6fb9e`](https://github.com/BerriAI/litellm/commit/df6fb9e5d95e97b7b207cd278d107e82b134fe45) made the Azure passthrough read the value of `stream`. The vLLM passthrough still checked only that the key existed, so a request for a router model with `"stream": false` got a streaming wrapper where the route expected a whole response, and the proxy answered 500. Fixed in [BerriAI/litellm#44936](https://github.com/BerriAI/litellm/pull/44936).
+
+The raw output is in [`runs/BerriAI-litellm-b6d587d.txt`](runs/BerriAI-litellm-b6d587d.txt).
 
 ## What these runs changed in half-fixed
 

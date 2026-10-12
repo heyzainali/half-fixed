@@ -29,8 +29,9 @@ There are no runtime dependencies, and there must not be any. The scanner ships 
 The scanner reports candidates, and the skill does the judging. Before adding a heuristic, check that the problem can't be handled in the skill's triage instructions.
 
 1. Add a test in `test/scan.test.js` that builds the repository shape the change is about.
-2. Run the scan on a real repository with sibling implementations before and after, and compare the high-confidence list. [prism-php/prism](https://github.com/prism-php/prism) is the reference case: `hf-5505660` must stay `high` at `upstream/main` (commit `9447c71`'s gap).
+2. Run the scan on a real repository with sibling implementations before and after, and compare the high-confidence list. [prism-php/prism](https://github.com/prism-php/prism) is the reference case: `hf-5505660` must stay `high` at `5d6cc65`, the commit before prism-php/prism#1038 fixed `9447c71`'s gap.
 3. Rebuild the fallback: `bun run build:fallback`, then `bun run check:fallback`. Commit the regenerated bundle with the change.
+4. If the scan output changes, regenerate the README demo from a prism checkout at `5d6cc65`: `bun run build:demo -- /path/to/prism`. Commit `docs/demo/scan.svg` with the change.
 
 ## Add a skill
 

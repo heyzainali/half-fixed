@@ -11,46 +11,38 @@
 [![Codex](https://img.shields.io/badge/Codex-plugin-10A37F)](https://developers.openai.com/codex)
 [![Zero dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)](package.json)
 
+<img src="docs/demo/scan.svg" width="876" alt="A terminal running npx half-fixed scan --group ToolMap on prism-php/prism. It reports hf-5505660: a fix made to the DeepSeek and OpenRouter tool maps in commit 9447c71 that the Groq, Mistral, xAI and Z tool maps never got. The last line notes that the gap is fixed in prism-php/prism#1038.">
+
 </div>
 
-Most codebases have siblings: provider adapters, database drivers, cache stores, payment gateways, platform ports. Each one does the same job a different way. When a bug turns up in one of them, someone fixes that one and moves on. The siblings often have the same code, and the same bug, and nobody notices until a user hits it.
+Most codebases have siblings: provider adapters, database drivers, cache stores, payment gateways, platform ports. Each one does the same job its own way. When a bug turns up in one of them, someone fixes that one and moves on. The siblings often have the same code and the same bug, and nobody notices until a user hits it.
 
-half-fixed finds those gaps in your git history. It's a fast, offline scanner plus two agent skills. One works out which findings are real and fixes those with tests. The other writes the pull request the way the project's maintainers expect.
+half-fixed reads your git history and finds those gaps. It's a fast, offline scanner plus two agent skills. One works out which findings are real bugs and fixes them with tests. The other writes the pull request the way the project's maintainers expect.
 
-## What it finds
+## Bugs it has found
 
-A real run on [prism-php/prism](https://github.com/prism-php/prism), a PHP library with ten LLM provider integrations:
+| Project | The fix that landed | The sibling that missed it | Pull request |
+|---|---|---|---|
+| [prism-php/prism](https://github.com/prism-php/prism) | DeepSeek and OpenRouter stopped failing on tools with no parameters ([`9447c71`](https://github.com/prism-php/prism/commit/9447c71d8697950ff1005f2409b95c99afcdcf84)) | Groq, Mistral, xAI and Z still sent `"properties": []`, which their APIs reject | [#1038](https://github.com/prism-php/prism/pull/1038) |
+| [BerriAI/litellm](https://github.com/BerriAI/litellm) | `disable_custom_api_keys` started honouring `config.yaml` ([#42437](https://github.com/BerriAI/litellm/pull/42437)) | `scope_user_search_to_org` still ignored `config.yaml`, so any logged-in user could list every user while the settings page said they couldn't | [#44925](https://github.com/BerriAI/litellm/pull/44925) |
+| [BerriAI/litellm](https://github.com/BerriAI/litellm) | Azure's passthrough started reading the value of `stream` ([`df6fb9e`](https://github.com/BerriAI/litellm/commit/df6fb9e5d95e97b7b207cd278d107e82b134fe45)) | vLLM's passthrough still only checked that the key existed, so `"stream": false` on the `/vllm` route crashed with a 500 | [#44936](https://github.com/BerriAI/litellm/pull/44936) |
 
-```text
-$ half-fixed scan --group Maps/ToolMap.php
-3 half-fixed changes found (24 commits, 1 sibling group, at upstream/main)
+Each one started as a single finding, like `hf-5505660` in the scan above. Found one yourself? Open a pull request that adds it to this table.
 
-src/Providers/*/Maps/ToolMap.php
-  hf-5505660  high  fixed in 2 of 10, still old in 4
-    fixed    DeepSeek, OpenRouter 9447c71 2025-10-14 fix(DeepSeek|OpenRouter): Fix exceptions during tool conversion without parameters (#661)
-    missing  Groq:21, Mistral:21, XAI:21, Z:21
-    + ...$tool->hasParameters() ? [
-    + ] : [],
-```
+## How accurate is it?
 
-In October 2025, commit `9447c71` stopped DeepSeek and OpenRouter from failing on tools that take no parameters. It wrapped the old block instead of replacing it, which is why the preview only shows added lines:
+Every high-confidence finding on litellm's main branch at [`b6d587d`](https://github.com/BerriAI/litellm/tree/b6d587d23e1c104340a905b45cb4027d7153a0ad) was checked against the original fix and the sibling's code:
 
-```diff
-                 'description' => $tool->description(),
--                'parameters' => [
-+                ...$tool->hasParameters() ? [
-+                    'parameters' => [
-                         'type' => 'object',
-                         'properties' => $tool->parametersAsArray(),
-                         'required' => $tool->requiredParameters(),
--                ],
-+                    ],
-+                ] : [],
-```
+| Verdict | Findings |
+|---|---:|
+| Real gap: the sibling still has the bug | 13 |
+| Fixed another way, or no longer needed | 40 |
+| Deliberately different | 12 |
+| Unsure | 1 |
 
-Groq, Mistral, xAI and Z kept the old code. A parameterless tool still sent `"properties": []`, and those APIs rejected the request. The fix for all four is [prism-php/prism#1038](https://github.com/prism-php/prism/pull/1038).
+So about one in five was a real bug, in a heavily reviewed project with nearly 1,800 contributors. The other four in five are why half-fixed never patches anything on its own: in mature code, most differences between siblings are on purpose. The scanner turns thousands of commits into a short list. The skill makes your agent read each one and back every verdict with evidence.
 
-## Tested on real projects
+It's fast enough to run on anything:
 
 | Project | Commits read | Sibling groups | High-confidence findings | Time |
 |---|---:|---:|---:|---:|
@@ -58,11 +50,9 @@ Groq, Mistral, xAI and Z kept the old code. A parameterless tool still sent `"pr
 | [laravel/framework](https://github.com/laravel/framework) | 1,960 | 90 | 8 | 6 s |
 | [django/django](https://github.com/django/django) | 563 | 52 | 7 | 3 s |
 | [rails/rails](https://github.com/rails/rails) | 1,569 | 60 | 3 | 5 s |
-| [BerriAI/litellm](https://github.com/BerriAI/litellm) | 5,000 | 326 | 62 | 59 s |
+| [BerriAI/litellm](https://github.com/BerriAI/litellm) | 5,000 | 339 | 66 | 69 s |
 
-Ten of those findings were checked by hand. One was a real bug, now a pull request. One was an unfinished cleanup in Django. One is unsure. The other seven turned out to be deliberate differences, cases handled another way, or no difference in behaviour. One example is Laravel's SES v1 transport keeping `Tags` after v2 renamed it to `EmailTags`: the v1 API really does call it `Tags`.
-
-That ratio is the point. In well-reviewed projects most differences between siblings are on purpose, so half-fixed doesn't patch anything on its own. The scanner turns thousands of commits into a short list. The skill makes the agent read each one and back its verdict with evidence. **[The evidence page](docs/evidence/README.md)** has every revision, the raw output, and the ten verdicts with links to the exact lines.
+**[The evidence page](docs/evidence/README.md)** has every revision, the raw output, and the verdicts with links to the exact lines, so you can check all of it.
 
 ## Quick start
 
@@ -126,12 +116,17 @@ The only program it runs is `git`, and it never writes to your repository. There
 
 ```text
   hf-5505660  high  fixed in 2 of 10, still old in 4
+    fixed    DeepSeek, OpenRouter 9447c71 2025-10-14 fix(DeepSeek|OpenRouter): Fix exceptions during tool conversion without parameters (#661)
+    missing  Groq:21, Mistral:21, XAI:21, Z:21
+    + ...$tool->hasParameters() ? [
+    + ] : [],
 ```
 
 - **`hf-5505660`** is a stable ID. Pass it to `half-fixed show` for the full old and new code and the file and line in every sibling, or use it in an exemption.
 - **`high`, `medium`, `low`** is the confidence. `high` means a bug-fix commit replaced code that siblings still have, or several fix commits made the same addition. `medium` is a single fix that only added lines, or the same non-fix change made in several commits. `low` is a single feature or refactor commit. Any finding drops a level when no sibling could take the new code as-is (see `needs` below). The scan shows `high` by default.
 - **`fixed in 2 of 10`** means the change reached 2 of the 10 members of the group. **`still old in 4`** means 4 members still have the old code. The other members differ too much to compare.
 - **`missing  Groq:21`** is a sibling and the line where its old code starts.
+- **`+` and `-` lines** preview what the fix changed. Here it only shows added lines, because `9447c71` wrapped the old block instead of replacing it.
 
 In `show` and `--json` output, a sibling can also list **`needs`**: names the new code uses that the sibling's file doesn't have. A non-empty `needs` means the fix has to be adapted, not copied.
 
@@ -147,10 +142,10 @@ In `show` and `--json` output, a sibling can also list **`needs`**: names the ne
 `--base` limits the scan to your branch's commits. It catches the moment you change two siblings and forget the third:
 
 ```bash
-half-fixed scan --base origin/main --confidence low
+npx half-fixed scan --base origin/main --confidence low
 ```
 
-Run on the branch behind prism-php/prism#1038, it flags DeepSeek and OpenAI as left out. That was deliberate, because both omit `parameters` for parameterless tools, but it's exactly what a reviewer will ask about, so it belongs in the PR description.
+Run on the branch behind prism-php/prism#1038, it flags DeepSeek and OpenAI as left out. That was deliberate, because both already omit `parameters` for tools without any, but it's exactly what a reviewer will ask about, so it belongs in the PR description.
 
 In CI, the exit code is 1 when there are findings and 2 on an error:
 
@@ -206,7 +201,7 @@ Put a `.half-fixed.json` at the repository root to record deliberate differences
 The scanner doesn't. It runs `git` locally and prints text. The skills are instructions for the coding agent you already use, and they only decide what to do with the scanner's output.
 
 **How noisy is it?**
-In the [real-world runs](docs/evidence/README.md), most high-confidence findings in mature projects turned out to be deliberate, and the skill is built around that. Locale files and backend feature flags differ on purpose, so exclude or exempt them once and they stay quiet.
+About one high-confidence finding in five was a real bug in litellm, and the rest were deliberate or already handled (see [How accurate is it?](#how-accurate-is-it)). The skill is built around that. Things that differ on purpose, like locale files or backend feature flags, can be excluded or exempted once and they stay quiet.
 
 **Which languages does it support?**
 Matching works on lines with whitespace ignored, so it doesn't parse any language. By default it scans source files in about thirty languages, including PHP, Python, Ruby, JavaScript, TypeScript, Go, Java, Kotlin, Rust, C, C++, C#, Swift, and Elixir. For anything else, list your files with `include` in `.half-fixed.json`.
@@ -220,14 +215,6 @@ Either the sibling's code was already different from the old code, even slightly
 - **It matches code exactly, apart from whitespace.** A sibling with the same bug written differently won't be found.
 - **Siblings are found by path.** Implementations that live in unrelated places, or whose files are named after themselves in different directories (`mysql/mysql-compiler.js`, `pg/pg-compiler.js`), aren't compared.
 - **Renaming a directory breaks the link** between older commits and the files as they are now.
-
-## Found with half-fixed
-
-| Project | Gap | Pull request |
-|---|---|---|
-| prism-php/prism | Empty tool properties sent as `[]` to Groq, Mistral, xAI and Z | [#1038](https://github.com/prism-php/prism/pull/1038) |
-
-Found one with half-fixed? Open a pull request that adds it to this table.
 
 ## Contributing
 

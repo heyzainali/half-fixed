@@ -1,0 +1,180 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="876" height="570" viewBox="0 0 876 570" role="img" aria-labelledby="title desc">
+  <title id="title">half-fixed scan on prism-php/prism</title>
+  <desc id="desc">Running npx half-fixed scan --group ToolMap on prism-php/prism lists hf-5505660: a fix made to the DeepSeek and OpenRouter tool maps in commit 9447c71 that the Groq, Mistral, xAI and Z tool maps never received. That gap is fixed in prism-php/prism#1038.</desc>
+  <style>
+    text{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;font-size:14px;fill:#c9d1d9;white-space:pre;font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}
+    @keyframes k0{0%,3.57%{opacity:0}3.58%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k1{0%,3.89%{opacity:0}3.90%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k2{0%,4.21%{opacity:0}4.22%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k3{0%,4.54%{opacity:0}4.55%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k4{0%,4.86%{opacity:0}4.87%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k5{0%,5.18%{opacity:0}5.19%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k6{0%,5.50%{opacity:0}5.51%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k7{0%,5.82%{opacity:0}5.83%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k8{0%,6.14%{opacity:0}6.15%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k9{0%,6.46%{opacity:0}6.47%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k10{0%,6.79%{opacity:0}6.80%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k11{0%,7.11%{opacity:0}7.12%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k12{0%,7.43%{opacity:0}7.44%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k13{0%,7.75%{opacity:0}7.76%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k14{0%,8.07%{opacity:0}8.08%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k15{0%,8.39%{opacity:0}8.40%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k16{0%,8.71%{opacity:0}8.72%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k17{0%,9.04%{opacity:0}9.05%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k18{0%,9.36%{opacity:0}9.37%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k19{0%,9.68%{opacity:0}9.69%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k20{0%,10.00%{opacity:0}10.01%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k21{0%,10.32%{opacity:0}10.33%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k22{0%,10.64%{opacity:0}10.65%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k23{0%,10.96%{opacity:0}10.97%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k24{0%,11.29%{opacity:0}11.30%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k25{0%,11.61%{opacity:0}11.62%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k26{0%,11.93%{opacity:0}11.94%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k27{0%,12.25%{opacity:0}12.26%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k28{0%,12.57%{opacity:0}12.58%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k29{0%,12.89%{opacity:0}12.90%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k30{0%,13.21%{opacity:0}13.22%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k31{0%,13.54%{opacity:0}13.55%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k32{0%,13.86%{opacity:0}13.87%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k33{0%,14.18%{opacity:0}14.19%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k34{0%,14.50%{opacity:0}14.51%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k35{0%,17.32%{opacity:0}17.33%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k36{0%,17.57%{opacity:0}17.58%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k37{0%,17.82%{opacity:0}17.83%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k38{0%,18.07%{opacity:0}18.08%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k39{0%,18.32%{opacity:0}18.33%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k40{0%,18.57%{opacity:0}18.58%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k41{0%,18.82%{opacity:0}18.83%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k42{0%,19.07%{opacity:0}19.08%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k43{0%,19.32%{opacity:0}19.33%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k44{0%,19.57%{opacity:0}19.58%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k45{0%,19.82%{opacity:0}19.83%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k46{0%,20.07%{opacity:0}20.08%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k47{0%,20.32%{opacity:0}20.33%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k48{0%,20.57%{opacity:0}20.58%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k49{0%,20.82%{opacity:0}20.83%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k50{0%,21.07%{opacity:0}21.08%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k51{0%,21.32%{opacity:0}21.33%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k52{0%,21.57%{opacity:0}21.58%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k53{0%,21.82%{opacity:0}21.83%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k54{0%,22.07%{opacity:0}22.08%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k55{0%,22.32%{opacity:0}22.33%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k56{0%,22.57%{opacity:0}22.58%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k57{0%,22.82%{opacity:0}22.83%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k58{0%,53.07%{opacity:0}53.08%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k59{0%,55.93%{opacity:0}55.94%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k60{0%,56.14%{opacity:0}56.15%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k61{0%,56.36%{opacity:0}56.37%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k62{0%,56.57%{opacity:0}56.58%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k63{0%,56.79%{opacity:0}56.80%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k64{0%,57.00%{opacity:0}57.01%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k65{0%,57.21%{opacity:0}57.22%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k66{0%,57.43%{opacity:0}57.44%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k67{0%,57.64%{opacity:0}57.65%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k68{0%,57.86%{opacity:0}57.87%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k69{0%,58.07%{opacity:0}58.08%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k70{0%,58.29%{opacity:0}58.30%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k71{0%,58.50%{opacity:0}58.51%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k72{0%,58.71%{opacity:0}58.72%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k73{0%,58.93%{opacity:0}58.94%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k74{0%,59.14%{opacity:0}59.15%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k75{0%,59.36%{opacity:0}59.37%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k76{0%,59.57%{opacity:0}59.58%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k77{0%,59.79%{opacity:0}59.80%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k78{0%,60.00%{opacity:0}60.01%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k79{0%,60.21%{opacity:0}60.22%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k80{0%,60.43%{opacity:0}60.44%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k81{0%,60.64%{opacity:0}60.65%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k82{0%,60.86%{opacity:0}60.87%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k83{0%,61.07%{opacity:0}61.08%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k84{0%,61.29%{opacity:0}61.30%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k85{0%,61.50%{opacity:0}61.51%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k86{0%,61.71%{opacity:0}61.72%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k87{0%,61.93%{opacity:0}61.94%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k88{0%,62.14%{opacity:0}62.15%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k89{0%,62.36%{opacity:0}62.37%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k90{0%,62.57%{opacity:0}62.58%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k91{0%,62.79%{opacity:0}62.80%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k92{0%,63.00%{opacity:0}63.01%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k93{0%,63.21%{opacity:0}63.22%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k94{0%,63.43%{opacity:0}63.44%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k95{0%,63.64%{opacity:0}63.65%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k96{0%,63.86%{opacity:0}63.87%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k97{0%,64.07%{opacity:0}64.08%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k98{0%,64.29%{opacity:0}64.30%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k99{0%,64.50%{opacity:0}64.51%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k100{0%,64.71%{opacity:0}64.72%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k101{0%,64.93%{opacity:0}64.94%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k102{0%,65.14%{opacity:0}65.15%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k103{0%,65.36%{opacity:0}65.37%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k104{0%,65.57%{opacity:0}65.58%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k105{0%,65.79%{opacity:0}65.80%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k106{0%,66.00%{opacity:0}66.01%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k107{0%,66.21%{opacity:0}66.22%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k108{0%,66.43%{opacity:0}66.44%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k109{0%,66.64%{opacity:0}66.65%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k110{0%,66.86%{opacity:0}66.87%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k111{0%,67.07%{opacity:0}67.08%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k112{0%,67.29%{opacity:0}67.30%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k113{0%,67.50%{opacity:0}67.51%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k114{0%,67.71%{opacity:0}67.72%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k115{0%,67.93%{opacity:0}67.94%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k116{0%,68.14%{opacity:0}68.15%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k117{0%,68.36%{opacity:0}68.37%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k118{0%,68.57%{opacity:0}68.58%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k119{0%,68.79%{opacity:0}68.80%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k120{0%,69.00%{opacity:0}69.01%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k121{0%,69.21%{opacity:0}69.22%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k122{0%,69.43%{opacity:0}69.44%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k123{0%,69.64%{opacity:0}69.65%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k124{0%,69.86%{opacity:0}69.87%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k125{0%,70.07%{opacity:0}70.08%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k126{0%,70.29%{opacity:0}70.30%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k127{0%,70.50%{opacity:0}70.51%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k128{0%,70.71%{opacity:0}70.72%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k129{0%,70.93%{opacity:0}70.94%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k130{0%,71.14%{opacity:0}71.15%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k131{0%,71.36%{opacity:0}71.37%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k132{0%,71.57%{opacity:0}71.58%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k133{0%,71.79%{opacity:0}71.80%,97%{opacity:1}100%{opacity:0}}
+    @keyframes k134{0%,72.00%{opacity:0}72.01%,97%{opacity:1}100%{opacity:0}}
+    @keyframes blink{0%{fill-opacity:1}50%{fill-opacity:0}}
+    @media (prefers-reduced-motion:reduce){*{animation:none!important;opacity:1!important}}
+  </style>
+  <clipPath id="window"><rect width="876" height="570" rx="10"/></clipPath>
+  <clipPath id="screen"><rect x="0" y="34" width="876" height="536"/></clipPath>
+  <g clip-path="url(#window)">
+    <rect width="876" height="570" fill="#0d1117"/>
+    <rect width="876" height="34" fill="#161b22"/>
+  </g>
+  <rect x="0.5" y="0.5" width="875" height="569" rx="10" fill="none" stroke="#30363d"/>
+  <circle cx="18" cy="17" r="5.5" fill="#ff5f56"/><circle cx="36" cy="17" r="5.5" fill="#ffbd2e"/><circle cx="54" cy="17" r="5.5" fill="#27c93f"/>
+  <text x="438" y="21.5" text-anchor="middle" fill="#8b949e" font-size="12">~/prism</text>
+  <g clip-path="url(#screen)" xml:space="preserve">
+    <text x="18" y="67"><tspan fill="#79c0ff">~/prism</tspan><tspan fill="#7ee787"> $ </tspan><tspan style="animation:k0 14s linear infinite">n</tspan><tspan style="animation:k1 14s linear infinite">p</tspan><tspan style="animation:k2 14s linear infinite">x</tspan><tspan style="animation:k3 14s linear infinite"> </tspan><tspan style="animation:k4 14s linear infinite">h</tspan><tspan style="animation:k5 14s linear infinite">a</tspan><tspan style="animation:k6 14s linear infinite">l</tspan><tspan style="animation:k7 14s linear infinite">f</tspan><tspan style="animation:k8 14s linear infinite">-</tspan><tspan style="animation:k9 14s linear infinite">f</tspan><tspan style="animation:k10 14s linear infinite">i</tspan><tspan style="animation:k11 14s linear infinite">x</tspan><tspan style="animation:k12 14s linear infinite">e</tspan><tspan style="animation:k13 14s linear infinite">d</tspan><tspan style="animation:k14 14s linear infinite"> </tspan><tspan style="animation:k15 14s linear infinite">s</tspan><tspan style="animation:k16 14s linear infinite">c</tspan><tspan style="animation:k17 14s linear infinite">a</tspan><tspan style="animation:k18 14s linear infinite">n</tspan><tspan style="animation:k19 14s linear infinite"> </tspan><tspan style="animation:k20 14s linear infinite">-</tspan><tspan style="animation:k21 14s linear infinite">-</tspan><tspan style="animation:k22 14s linear infinite">g</tspan><tspan style="animation:k23 14s linear infinite">r</tspan><tspan style="animation:k24 14s linear infinite">o</tspan><tspan style="animation:k25 14s linear infinite">u</tspan><tspan style="animation:k26 14s linear infinite">p</tspan><tspan style="animation:k27 14s linear infinite"> </tspan><tspan style="animation:k28 14s linear infinite">T</tspan><tspan style="animation:k29 14s linear infinite">o</tspan><tspan style="animation:k30 14s linear infinite">o</tspan><tspan style="animation:k31 14s linear infinite">l</tspan><tspan style="animation:k32 14s linear infinite">M</tspan><tspan style="animation:k33 14s linear infinite">a</tspan><tspan style="animation:k34 14s linear infinite">p</tspan></text>
+    <text x="18" y="87" style="animation:k35 14s linear infinite"><tspan fill="#ff7b72" font-weight="700">3 half-fixed changes found</tspan><tspan fill="#c9d1d9"> </tspan><tspan fill="#8b949e">(24 commits, 1 sibling group, at HEAD)</tspan></text>
+    <text x="18" y="107" style="animation:k36 14s linear infinite"></text>
+    <text x="18" y="127" style="animation:k37 14s linear infinite"><tspan fill="#c9d1d9" font-weight="700">src/Providers/*/Maps/ToolMap.php</tspan></text>
+    <text x="18" y="147" style="animation:k38 14s linear infinite"><tspan fill="#c9d1d9">  </tspan><tspan fill="#c9d1d9" font-weight="700">hf-5505660</tspan><tspan fill="#c9d1d9">  </tspan><tspan fill="#ff7b72">high</tspan><tspan fill="#c9d1d9">  fixed in 2 of 10, still old in 4</tspan></text>
+    <text x="18" y="167" style="animation:k39 14s linear infinite"><tspan fill="#c9d1d9">    fixed    </tspan><tspan fill="#7ee787">DeepSeek, OpenRouter</tspan><tspan fill="#c9d1d9"> </tspan><tspan fill="#8b949e">9447c71 2025-10-14</tspan><tspan fill="#c9d1d9"> fix(DeepSeek|OpenRouter): Fix exceptions during tool conversion without parameters (#661)</tspan></text>
+    <text x="18" y="187" style="animation:k40 14s linear infinite"><tspan fill="#c9d1d9">    missing  </tspan><tspan fill="#ff7b72">Groq</tspan><tspan fill="#8b949e">:21</tspan><tspan fill="#c9d1d9">, </tspan><tspan fill="#ff7b72">Mistral</tspan><tspan fill="#8b949e">:21</tspan><tspan fill="#c9d1d9">, </tspan><tspan fill="#ff7b72">XAI</tspan><tspan fill="#8b949e">:21</tspan><tspan fill="#c9d1d9">, </tspan><tspan fill="#ff7b72">Z</tspan><tspan fill="#8b949e">:21</tspan></text>
+    <text x="18" y="207" style="animation:k41 14s linear infinite"><tspan fill="#8b949e">    + ...$tool-&gt;hasParameters() ? [</tspan></text>
+    <text x="18" y="227" style="animation:k42 14s linear infinite"><tspan fill="#8b949e">    + ] : [],</tspan></text>
+    <text x="18" y="247" style="animation:k43 14s linear infinite"><tspan fill="#c9d1d9">  </tspan><tspan fill="#c9d1d9" font-weight="700">hf-a9135eb</tspan><tspan fill="#c9d1d9">  </tspan><tspan fill="#ff7b72">high</tspan><tspan fill="#c9d1d9">  fixed in 4 of 10, still old in 3</tspan></text>
+    <text x="18" y="267" style="animation:k44 14s linear infinite"><tspan fill="#c9d1d9">    fixed    </tspan><tspan fill="#7ee787">Groq, Ollama, XAI</tspan><tspan fill="#c9d1d9"> </tspan><tspan fill="#8b949e">c4d8c5b 2025-08-31</tspan><tspan fill="#c9d1d9"> Update dev dependencies &amp; fix failing tests (#591)</tspan></text>
+    <text x="18" y="287" style="animation:k45 14s linear infinite"><tspan fill="#c9d1d9">    fixed    </tspan><tspan fill="#7ee787">Mistral</tspan><tspan fill="#c9d1d9"> </tspan><tspan fill="#8b949e">f20de81 2025-02-23</tspan><tspan fill="#c9d1d9"> refactor(mistral): Return FInal Response (#191)</tspan></text>
+    <text x="18" y="307" style="animation:k46 14s linear infinite"><tspan fill="#c9d1d9">    missing  </tspan><tspan fill="#ff7b72">DeepSeek</tspan><tspan fill="#8b949e">:17</tspan><tspan fill="#c9d1d9">, </tspan><tspan fill="#ff7b72">OpenAI</tspan><tspan fill="#8b949e">:17</tspan><tspan fill="#c9d1d9">, </tspan><tspan fill="#ff7b72">OpenRouter</tspan><tspan fill="#8b949e">:17</tspan></text>
+    <text x="18" y="327" style="animation:k47 14s linear infinite"><tspan fill="#8b949e">    - return array_map(fn (Tool $tool): array =&gt; array_filter([</tspan></text>
+    <text x="18" y="347" style="animation:k48 14s linear infinite"><tspan fill="#8b949e">    + return array_map(fn (Tool $tool): array =&gt; [</tspan></text>
+    <text x="18" y="367" style="animation:k49 14s linear infinite"><tspan fill="#c9d1d9">  </tspan><tspan fill="#c9d1d9" font-weight="700">hf-ca17de4</tspan><tspan fill="#c9d1d9">  </tspan><tspan fill="#ff7b72">high</tspan><tspan fill="#c9d1d9">  fixed in 1 of 10, still old in 1</tspan></text>
+    <text x="18" y="387" style="animation:k50 14s linear infinite"><tspan fill="#c9d1d9">    fixed    </tspan><tspan fill="#7ee787">OpenRouter</tspan><tspan fill="#c9d1d9"> </tspan><tspan fill="#8b949e">6309868 2025-10-15</tspan><tspan fill="#c9d1d9"> fix(OpenRouter):fix the exception caused by calling the gpt-5 model when there are no parameter tools (#666)</tspan></text>
+    <text x="18" y="407" style="animation:k51 14s linear infinite"><tspan fill="#c9d1d9">    missing  </tspan><tspan fill="#ff7b72">DeepSeek</tspan><tspan fill="#8b949e">:22</tspan></text>
+    <text x="18" y="427" style="animation:k52 14s linear infinite"><tspan fill="#8b949e">    - ...$tool-&gt;hasParameters() ? [</tspan></text>
+    <text x="18" y="447" style="animation:k53 14s linear infinite"><tspan fill="#8b949e">    - 'properties' =&gt; $tool-&gt;parametersAsArray(),</tspan></text>
+    <text x="18" y="467" style="animation:k54 14s linear infinite"><tspan fill="#8b949e">    - ] : [],</tspan></text>
+    <text x="18" y="487" style="animation:k55 14s linear infinite"><tspan fill="#8b949e">    + 'properties' =&gt; $tool-&gt;hasParameters() ? $tool-&gt;parametersAsArray() : (object) [],</tspan></text>
+    <text x="18" y="507" style="animation:k56 14s linear infinite"></text>
+    <text x="18" y="527" style="animation:k57 14s linear infinite"><tspan fill="#8b949e">3 lower-confidence changes hidden (--confidence medium, or --all)</tspan></text>
+    <text x="18" y="547"><tspan style="animation:k58 14s linear infinite"><tspan fill="#79c0ff">~/prism</tspan><tspan fill="#7ee787"> $ </tspan></tspan><tspan fill="#d2a8ff"><tspan style="animation:k59 14s linear infinite">#</tspan><tspan style="animation:k60 14s linear infinite"> </tspan><tspan style="animation:k61 14s linear infinite">G</tspan><tspan style="animation:k62 14s linear infinite">r</tspan><tspan style="animation:k63 14s linear infinite">o</tspan><tspan style="animation:k64 14s linear infinite">q</tspan><tspan style="animation:k65 14s linear infinite">,</tspan><tspan style="animation:k66 14s linear infinite"> </tspan><tspan style="animation:k67 14s linear infinite">M</tspan><tspan style="animation:k68 14s linear infinite">i</tspan><tspan style="animation:k69 14s linear infinite">s</tspan><tspan style="animation:k70 14s linear infinite">t</tspan><tspan style="animation:k71 14s linear infinite">r</tspan><tspan style="animation:k72 14s linear infinite">a</tspan><tspan style="animation:k73 14s linear infinite">l</tspan><tspan style="animation:k74 14s linear infinite">,</tspan><tspan style="animation:k75 14s linear infinite"> </tspan><tspan style="animation:k76 14s linear infinite">x</tspan><tspan style="animation:k77 14s linear infinite">A</tspan><tspan style="animation:k78 14s linear infinite">I</tspan><tspan style="animation:k79 14s linear infinite"> </tspan><tspan style="animation:k80 14s linear infinite">a</tspan><tspan style="animation:k81 14s linear infinite">n</tspan><tspan style="animation:k82 14s linear infinite">d</tspan><tspan style="animation:k83 14s linear infinite"> </tspan><tspan style="animation:k84 14s linear infinite">Z</tspan><tspan style="animation:k85 14s linear infinite"> </tspan><tspan style="animation:k86 14s linear infinite">s</tspan><tspan style="animation:k87 14s linear infinite">t</tspan><tspan style="animation:k88 14s linear infinite">i</tspan><tspan style="animation:k89 14s linear infinite">l</tspan><tspan style="animation:k90 14s linear infinite">l</tspan><tspan style="animation:k91 14s linear infinite"> </tspan><tspan style="animation:k92 14s linear infinite">h</tspan><tspan style="animation:k93 14s linear infinite">a</tspan><tspan style="animation:k94 14s linear infinite">d</tspan><tspan style="animation:k95 14s linear infinite"> </tspan><tspan style="animation:k96 14s linear infinite">t</tspan><tspan style="animation:k97 14s linear infinite">h</tspan><tspan style="animation:k98 14s linear infinite">e</tspan><tspan style="animation:k99 14s linear infinite"> </tspan><tspan style="animation:k100 14s linear infinite">b</tspan><tspan style="animation:k101 14s linear infinite">u</tspan><tspan style="animation:k102 14s linear infinite">g</tspan><tspan style="animation:k103 14s linear infinite">:</tspan><tspan style="animation:k104 14s linear infinite"> </tspan><tspan style="animation:k105 14s linear infinite">f</tspan><tspan style="animation:k106 14s linear infinite">i</tspan><tspan style="animation:k107 14s linear infinite">x</tspan><tspan style="animation:k108 14s linear infinite">e</tspan><tspan style="animation:k109 14s linear infinite">d</tspan><tspan style="animation:k110 14s linear infinite"> </tspan><tspan style="animation:k111 14s linear infinite">i</tspan><tspan style="animation:k112 14s linear infinite">n</tspan><tspan style="animation:k113 14s linear infinite"> </tspan><tspan style="animation:k114 14s linear infinite">p</tspan><tspan style="animation:k115 14s linear infinite">r</tspan><tspan style="animation:k116 14s linear infinite">i</tspan><tspan style="animation:k117 14s linear infinite">s</tspan><tspan style="animation:k118 14s linear infinite">m</tspan><tspan style="animation:k119 14s linear infinite">-</tspan><tspan style="animation:k120 14s linear infinite">p</tspan><tspan style="animation:k121 14s linear infinite">h</tspan><tspan style="animation:k122 14s linear infinite">p</tspan><tspan style="animation:k123 14s linear infinite">/</tspan><tspan style="animation:k124 14s linear infinite">p</tspan><tspan style="animation:k125 14s linear infinite">r</tspan><tspan style="animation:k126 14s linear infinite">i</tspan><tspan style="animation:k127 14s linear infinite">s</tspan><tspan style="animation:k128 14s linear infinite">m</tspan><tspan style="animation:k129 14s linear infinite">#</tspan><tspan style="animation:k130 14s linear infinite">1</tspan><tspan style="animation:k131 14s linear infinite">0</tspan><tspan style="animation:k132 14s linear infinite">3</tspan><tspan style="animation:k133 14s linear infinite">8</tspan></tspan><tspan style="animation:k134 14s linear infinite,blink 1s steps(1) infinite">▋</tspan></text>
+  </g>
+</svg>

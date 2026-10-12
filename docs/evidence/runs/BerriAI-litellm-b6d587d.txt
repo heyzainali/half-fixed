@@ -1,0 +1,523 @@
+66 half-fixed changes found (5000 commits, 339 sibling groups, at HEAD)
+
+litellm/llms/*/chat/transformation.py
+  hf-d75ceaa  high  fixed in 1 of 83, still old in 17
+    fixed    cloudflare 1be957d 2026-06-23 fix(cloudflare): route native Workers AI provider through OpenAI-compatible endpoint (#31053)
+    missing  amazon_nova:82, bytez:183, clarifai:86, cohere:222, databricks:646, fireworks_ai:713, gigachat:411, groq:283, langflow:220, langgraph:417, lemonade:227, mistral:576, oci:598, openai_like:126, perplexity:71, sap:390, snowflake:521
+    - raw_response: httpx.Response,
+    - model_response: ModelResponse,
+    - logging_obj: LiteLLMLoggingObj,
+    - request_data: dict,
+
+litellm/proxy/*/endpoints.py
+  hf-b3dd1e2  high  fixed in 3 of 21, still old in 8
+    fixed    vector_store_files_endpoints 8efb4a2 2026-10-02 fix(vector_stores): return managed file ids from vector store file list (#43800)
+    fixed    video_endpoints da7d5fe 2026-09-14 refactor: replace Any with precise types across 54 modules
+    fixed    ocr_endpoints 57d739b 2026-08-17 feat(ocr): add req_format=native to return Azure Document Intelligence's own analyzeResult payload
+    missing  container_endpoints:229, decisions_endpoints:66, google_endpoints:51, image_endpoints:329, openai_evals_endpoints:91, response_api_endpoints:767, search_endpoints:220, vector_store_endpoints:152
+    - return await processor.base_process_llm_request(
+    + response: Final[object] = await processor.base_process_llm_request(
+
+litellm/llms/openai/*/guardrail_translation/handler.py
+  hf-337d9d2  high  fixed in 2 of 8, still old in 6
+    fixed    chat, responses 7edf5b3 2026-08-31 fix(guardrails): deliver modify_response block as valid SSE on streaming chat and Responses
+    missing  completion:15, embeddings:15, image_generation:15, speech:15, transcriptions:15, videos:7
+    - from litellm.integrations.custom_guardrail import CustomGuardrail
+    + from litellm.integrations.custom_guardrail import (
+    + CustomGuardrail,
+    + ModifyResponseException,
+    + )
+
+litellm/llms/*/chat/transformation.py
+  hf-d2c4545  high  fixed in 1 of 83, still old in 6
+    fixed    deepseek df7b1f0 2026-08-26 fix: forward image content lists to DeepSeek vision models
+    missing  dashscope:50, docker_model_runner:48, groq:158, heroku:46, modelscope:58, moonshot:66
+    - return super()._transform_messages(messages=messages, model=model, is_async=True)
+    + return super()._transform_messages(messages=transformed, model=model, is_async=True)
+
+litellm/llms/*/vector_stores/transformation.py
+  hf-12e1925  high  fixed in 2 of 11, still old in 5
+    fixed    azure_ai, milvus 86c8b93 2026-09-02 fix(vector-store): embed Milvus and Azure AI Search queries through the request executor
+    missing  bedrock:203, gemini:164, openai:95, pg_vector:76, ragflow:89
+    - query: str | list[str],
+    + query: str | Sequence[str],
+
+litellm/llms/*/chat/transformation.py
+  hf-99a66fe  high  fixed in 1 of 83, still old in 5
+    fixed    cloudflare 1be957d 2026-06-23 fix(cloudflare): route native Workers AI provider through OpenAI-compatible endpoint (#31053)
+    missing  cohere:280, gigachat:489, nlp_cloud:220, oobabooga:79, replicate:282
+    - setattr(model_response, "usage", usage)
+    - return model_response
+
+litellm/llms/*/audio_transcription/transformation.py
+  hf-b9bba09  high  fixed in 1 of 14, still old in 4
+    fixed    xai 6f54ad5 2026-09-19 fix(xai): parse integer speaker ids and simplify stt form build
+    missing  deepgram:43, mistral:46, ovhcloud:52, scaleway:47
+    - for k, v in non_default_params.items():
+    - if k in supported_params:
+    - optional_params[k] = v
+    - return optional_params
+    + return {
+    + **optional_params,
+    … 2 more lines, run: half-fixed show hf-b9bba09
+
+litellm/llms/*/files/transformation.py
+  hf-cf128a9  high  fixed in 2 of 8, still old in 4
+    fixed    mistral c246f75 2026-09-09 refactor(mistral): satisfy type-discipline and basedpyright gates for files/batches configs
+    fixed    bedrock 7bff9bf 2026-09-07 fix(batches): handle provider cancellation and file cleanup gaps
+    missing  anthropic:252, gemini:358, manus:342, vertex_ai:1198
+    - litellm_params: dict,
+    + litellm_params: Mapping[str, object],
+
+litellm/*/main.py
+  hf-af47297  high  fixed in 2 of 24, still old in 4
+    fixed    realtime_api 14f8677 2026-09-04 fix(realtime): mark realtime sessions async so failure hooks fire once
+    fixed    passthrough 68ad575 2026-08-25 fix(bedrock_mantle): register a Bedrock runtime passthrough config so /bedrock/model/<deployment>/invoke works
+    missing  assistants:85, files:409, images:273, responses:2372
+    - litellm_params_dict: Final = get_litellm_params(**kwargs)
+    + litellm_params_dict: Final = {**get_litellm_params(**kwargs), CallTypes.arealtime.value: True}
+
+litellm/llms/*/cost_calculator.py
+  hf-e30053f  high  fixed in 1 of 16, still old in 4
+    fixed    fireworks_ai d0ac494 2026-09-03 fix(cost): honor off_peak_pricing in the fireworks_ai and perplexity cost calculators
+    missing  databricks:35, deepseek:13, gemini:15, vertex_ai:212
+    - Calculates the cost per token for a given model, prompt tokens, and completion tokens.
+    + Calculates the cost per token for a given model, prompt tokens, and completion tokens,
+    + swapping in the model's off_peak_pricing rates while one of its windows is open.
+
+litellm/proxy/*/endpoints.py
+  hf-996f587  high  fixed in 1 of 21, still old in 4
+    fixed    anthropic_endpoints 803113c 2026-08-18 fix(proxy): estimate failed-request input tokens on /v1/messages and count system prompts
+    missing  batches_endpoints:520, fine_tuning_endpoints:214, image_endpoints:206, rerank_endpoints:117
+    - user_api_key_dict=user_api_key_dict, original_exception=e, request_data=data
+    + user_api_key_dict=user_api_key_dict, original_exception=e, request_data=base_llm_response_processor…
+
+litellm/llms/*/cost_calculator.py
+  hf-3645ccd  high  fixed in 4 of 16, still old in 3
+    fixed    databricks e814532 2026-09-29 fix(streaming): keep the served service_tier on streamed chunks and spend rows (#42870)
+    fixed    fireworks_ai, perplexity d0ac494 2026-09-03 fix(cost): honor off_peak_pricing in the fireworks_ai and perplexity cost calculators
+    fixed    dashscope f3792fb 2026-09-01 feat(dashscope): add qwencloud and qwen_ai_platform provider aliases
+    missing  deepseek:11, tencent:5, xai:52
+    - def cost_per_token(model: str, usage: Usage) -> tuple[float, float]:
+    + def cost_per_token(model: str, usage: Usage, service_tier: str | None = None) -> tuple[float, float…
+
+litellm/*/main.py
+  hf-4ed3bca  high  fixed in 1 of 24, still old in 3
+    fixed    responses 680f3ff 2026-06-12 fix: bedrock mantle fixes (#30083)
+    missing  google_genai:136, interactions:285, realtime_api:151
+    - api_base=litellm_params.api_base,
+    - api_key=litellm_params.api_key,
+    + litellm_params=litellm_params,
+    + local_vars=local_vars,
+
+ui/litellm-dashboard/src/hooks/*Flow.tsx
+  hf-4540a04  high  fixed in 1 of 3, still old in 2
+    fixed    useMcpOAuth 2d82915 2026-10-05 fix(mcp): bind OAuth clients to their upstream issuer (#37777)
+    missing  useToolsOAuth:201, useUserMcpOAuth:206
+    - clientId: flowState.clientId,
+    - clientSecret: flowState.clientSecret,
+    + ...oauthClientRequest(client),
+
+litellm/llms/vertex_ai/*/main.py
+  hf-c8e8af5  high  fixed in 1 of 3, still old in 2
+    fixed    vertex_ai_partner_models 4274bdd 2026-09-27 fix(vertex_ai): stop importing the vertexai SDK in partner-model completion (#42274)
+    missing  vertex_gemma_models:72, vertex_model_garden:86
+    - message=f"""vertexai import failed please run `pip install -U "google-cloud-aiplatform>=1.38"`. Got…
+    + message=f"Failed to import a partner model handler. Got error: {e}",
+  hf-f475aca  high  fixed in 1 of 3, still old in 2
+    fixed    vertex_ai_partner_models 4274bdd 2026-09-27 fix(vertex_ai): stop importing the vertexai SDK in partner-model completion (#42274)
+    missing  vertex_gemma_models:75, vertex_model_garden:89
+    - if not (hasattr(vertexai, "preview") or hasattr(vertexai.preview, "language_models")):
+    - raise VertexAIError(
+    - status_code=400,
+    - message="""Upgrade vertex ai. Run `pip install "google-cloud-aiplatform>=1.38"`""",
+    - )
+
+ui/litellm-dashboard/src/components/AIHub/*Columns.tsx
+  hf-ee850f1  high  fixed in 1 of 4, still old in 2
+    fixed    MCPHubTable 5d777c1 2026-09-26 fix(mcp): align hub publication status and controls (#43241)
+    missing  AgentHubTable:207, ModelHubTable:214
+    - meta: { title: "Public", skeleton: "badge", className: "hidden md:table-cell" },
+    - header: ({ column }) => <DataTableSortHeader column={column} title="Public" />,
+    + meta: { title: "Hub listing", skeleton: "badge", className: "hidden md:table-cell" },
+    + header: ({ column }) => <DataTableSortHeader column={column} title="Hub listing" />,
+
+litellm/llms/*/passthrough/transformation.py
+  hf-10bf068  high  fixed in 3 of 9, still old in 2
+    fixed    azure 52e9cfe 2026-09-07 fix(azure): price streamed Responses relays and keep a full-URL api_base from doubling the native path
+    fixed    base_llm 12d9413 2026-09-07 refactor(passthrough): share the relay shape table and price FLUX 2 provider relays
+    fixed    gigachat 93d272f 2026-06-18 fix some lint issues
+    missing  bedrock:87, bedrock_mantle:61
+    - ) -> Optional["CostResponseTypes"]:
+    + ) -> Optional["LoggedRelayResponse"]:
+
+litellm/proxy/management_endpoints/*_endpoints.py
+  hf-07c709f  high  fixed in 2 of 30, still old in 2
+    fixed    key_management 6908318 2026-09-07 feat(keys): allow editing soft budget on existing keys (#39002)
+    fixed    team 7015bf3 2026-09-05 fix(proxy): apply team model aliases on the JWT auth path
+    missing  model_management:1954, team_callback:395
+    - include={"object_permission": True},
+    + include={"object_permission": True, "litellm_budget_table": True},
+
+litellm/proxy/pass_through_endpoints/llm_provider_handlers/*_handler.py
+  hf-22e96fb  high  fixed in 1 of 16, still old in 2
+    fixed    openai_passthrough_logging 9ea9aa2 2026-09-05 fix(azure_ai): count prompt tokens for streaming relays that carry no usage chunk
+    missing  gemini_passthrough_logging:215, vertex_passthrough_logging:661
+    - complete_streaming_response: Final = litellm.stream_chunk_builder(chunks=all_openai_chunks)
+    + complete_streaming_response: Final = litellm.stream_chunk_builder(
+    + chunks=all_openai_chunks, messages=messages
+    + )
+
+litellm/llms/*/passthrough/transformation.py
+  hf-6737d5b  high  fixed in 1 of 9, still old in 2
+    fixed    gigachat b0ce17c 2026-08-29 fix(gigachat): generic env-credential passthrough fallback plus type hardening
+    missing  azure:203, bedrock:270
+    - request_data=request_data,
+    + request_data=dict(request_data), # mutable-ok: transform_response wants a dict
+
+litellm/llms/openai/*/guardrail_translation/handler.py
+  hf-b991384  high  fixed in 1 of 8, still old in 2
+    fixed    chat 64eec53 2026-08-29 fix(guardrails): surface post-flush stream blocks as in-stream error frames and keep guardrail_information in spend logs
+    missing  completion:163, transcriptions:89
+    - # Add user API key metadata with prefixed keys
+    - if "litellm_metadata" not in request_data:
+    - user_metadata: Final = self.transform_user_api_key_dict_to_metadata(user_api_key_dict)
+    - if user_metadata:
+    - request_data["litellm_metadata"] = user_metadata
+    + self.merge_user_api_key_metadata_into_request(request_data, user_api_key_dict)
+  hf-58202d7  high  fixed in 1 of 8, still old in 2
+    fixed    chat 64eec53 2026-08-29 fix(guardrails): surface post-flush stream blocks as in-stream error frames and keep guardrail_information in spend logs
+    missing  completion:164, transcriptions:90
+    - if "litellm_metadata" not in request_data:
+    - user_metadata: Final = self.transform_user_api_key_dict_to_metadata(user_api_key_dict)
+    - if user_metadata:
+    - request_data["litellm_metadata"] = user_metadata
+    + self.merge_user_api_key_metadata_into_request(request_data, user_api_key_dict)
+
+litellm/llms/*/files/transformation.py
+  hf-f7ec356  high  fixed in 1 of 8, still old in 2
+    fixed    base_llm f9f8320 2026-08-21 fix(files): list unscoped managed files
+    missing  mistral:30, xai:26
+    - OpenAIFilesPurpose,
+
+litellm/llms/*/responses/transformation.py
+  hf-c1a4895  high  fixed in 1 of 20, still old in 1
+    fixed    chatgpt a983b2a 2026-10-06 fix(responses): honor caller stream flag when provider forces SSE (internal copy of #34095) (#41235)
+    missing  github_copilot:98
+    - self.authenticator = Authenticator()
+    + self.authenticator = authenticator if authenticator is not None else Authenticator()
+
+litellm/llms/custom_httpx/*_handler.py
+  hf-4c331da  high  fixed in 1 of 6, still old in 1
+    fixed    llm_http 6d8434f 2026-10-02 fix(proxy): return 4xx instead of 500 for missing required params, invalid pagination and unknown ids (#43787)
+    missing  aiohttp:678
+    - error_text = getattr(error_response, "text", error_text)
+    + error_text = getattr(error_response, "text", None) or error_text
+
+litellm/llms/*/responses/transformation.py
+  hf-1722ef1  high  fixed in 1 of 20, still old in 1
+    fixed    openai fe91088 2026-10-02 fix(responses): drop bridge-minted reasoning items from OpenAI replays (#44132)
+    missing  fireworks_ai:152
+    - validated_input: Final = self._validate_input_param(input)
+    + validated_input: Final = self._validate_input_param(self._drop_bridge_minted_reasoning_items(input))
+
+ui/litellm-dashboard/src/components/AIHub/*Columns.tsx
+  hf-0c86cc0  high  fixed in 1 of 4, still old in 1
+    fixed    MCPHubTable 5d777c1 2026-09-26 fix(mcp): align hub publication status and controls (#43241)
+    missing  AgentHubTable:218
+    - return <StatusBadge tone={isPublic ? "success" : "neutral"} label={isPublic ? "Yes" : "No"} />;
+    + return <StatusBadge tone={isPublic ? "success" : "neutral"} label={isPublic ? "Listed" : "Unlisted"…
+
+litellm/*/streaming_iterator.py
+  hf-afe0d63  high  fixed in 1 of 4, still old in 1
+    fixed    responses 5ac640e 2026-09-26 fix(responses): run stream failure and success hooks on the iterating loop instead of blocking it (#43270)
+    missing  interactions:254
+    - end_time=datetime.now(),
+    + end_time=end_time,
+
+litellm/proxy/management_endpoints/*_endpoints.py
+  hf-9d64e6d  high  fixed in 1 of 30, still old in 1
+    fixed    key_management 666f6b0 2026-09-22 fix: enforce disable_custom_api_keys from general_settings (#42437)
+    missing  internal_user:2673
+    - from litellm.proxy.ui_crud_endpoints.proxy_setting_endpoints import (
+    - get_ui_settings_cached,
+    - )
+
+litellm/llms/*/chat/transformation.py
+  hf-82c175f  high  fixed in 29 of 83, still old in 1
+    fixed    a2a, aiohttp_openai, amazon_nova, anthropic, azure_ai, base_llm, bytez, clarifai, cohere, compactifai, databricks, edenai, fireworks_ai, groq, langflow, langgraph, lemonade, mistral, nlp_cloud, oci, ollama, oobabooga, openai_like, openrouter, perplexity, predibase, replicate, sap 0abd926 2026-09-22 feat(tokenizer): preserve Python defaults with opt-in Rust dispatch (#42174)
+    fixed    gigachat b0ce17c 2026-08-29 fix(gigachat): generic env-credential passthrough fallback plus type hardening
+    missing  fal_ai:206
+    - encoding: "tiktoken.Encoding | None",
+    + encoding: "Tokenizer | None",
+
+litellm/llms/*/videos/transformation.py
+  hf-c33cab2  high  fixed in 1 of 9, still old in 1
+    fixed    fal_ai 0b9035b 2026-09-21 fix(fal_ai): handle transient result errors and inject clients
+    missing  runwayml:467
+    - httpx_client: Final[HTTPHandler] = _get_httpx_client()
+    + httpx_client: Final[HTTPHandler] = self._sync_client_factory()
+
+litellm/router_utils/*_cache.py
+  hf-765f3a8  high  fixed in 1 of 3, still old in 1
+    fixed    prompt_caching 517fff5 2026-09-19 fix(router): keep prompt caching affinity when the breakpoint moves
+    missing  cooldown:50
+    - self.in_memory_cache = InMemoryCache()
+
+litellm/llms/*/messages/transformation.py
+  hf-32bacc8  high  fixed in 1 of 7, still old in 1
+    fixed    bedrock_mantle 368a839 2026-09-19 fix(bedrock_mantle): send anthropic betas in the header Mantle reads on /v1/messages
+    missing  openai_like:84
+    - request: Final = super().transform_anthropic_messages_request(
+    + request: Final = _MANTLE_REQUEST.validate_python(
+    + super().transform_anthropic_messages_request(
+    + ),
+
+litellm/llms/*/vector_stores/transformation.py
+  hf-3e3434d  high  fixed in 1 of 11, still old in 1
+    fixed    openai c03a42a 2026-09-16 fix(azure): keep api-version query after vector store search path
+    missing  pg_vector:85
+    - url: Final = f"{api_base}/{encoded_vector_store_id}/search"
+    + base_url, query_separator, query_string = api_base.partition("?")
+    + url: Final = f"{base_url}/{encoded_vector_store_id}/search{query_separator}{query_string}"
+
+litellm/proxy/*/endpoints.py
+  hf-b57da6e  high  fixed in 2 of 21, still old in 1
+    fixed    image_endpoints, rerank_endpoints 1a7ca04 2026-09-16 fix(proxy): carry litellm_call_id through endpoint specific error logs and failure responses
+    missing  fine_tuning_endpoints:190
+    - asyncio.create_task(
+    - proxy_logging_obj.update_request_status(litellm_call_id=data.get("litellm_call_id", ""), status="su…
+    - )
+    + asyncio.create_task(proxy_logging_obj.update_request_status(litellm_call_id=litellm_call_id, status…
+
+litellm/proxy/pass_through_endpoints/llm_provider_handlers/*_handler.py
+  hf-ee25423  high  fixed in 1 of 16, still old in 1
+    fixed    vertex_ai_live_passthrough_logging e2b4128 2026-09-07 fix(vertex-live): bill every modality on the /vertex_ai/live passthrough
+    missing  openai_passthrough_logging:475
+    - # Update kwargs with cost information
+    - kwargs["response_cost"] = response_cost
+
+litellm/llms/*/passthrough/transformation.py
+  hf-e7d47fa  high  fixed in 1 of 9, still old in 1
+    fixed    azure df6fb9e 2026-09-05 fix(azure_ai): relay from the Foundry root and log non-chat relays for spend tracking
+    missing  vllm:13
+    - return "stream" in request_data
+    + return bool(request_data.get("stream"))
+
+litellm/llms/*/common_utils.py
+  hf-3303816  high  fixed in 1 of 49, still old in 1
+    fixed    fireworks_ai 8441dd6 2026-09-02 fix(proxy): keep SpendLogs and callback session ids in sync when the request has none (#39450)
+    missing  chatgpt:276
+    - metadata: Final = params.get("metadata")
+
+litellm/llms/*/chat/transformation.py
+  hf-528c17f  high  fixed in 1 of 83, still old in 1
+    fixed    wandb 1bf9418 2026-09-02 fix(wandb): type supported parameter list
+    missing  together_ai:216
+    - def get_supported_openai_params(self, model: str) -> list: # mutable-ok: inherited contract
+    + def get_supported_openai_params(self, model: str) -> list[str]: # mutable-ok: inherited contract
+
+litellm/llms/openai/*/guardrail_translation/handler.py
+  hf-29b83c1  high  fixed in 1 of 8, still old in 1
+    fixed    responses 6bd3699 2026-08-29 fix(responses): keep guardrailed input items and bridge stream usage intact
+    missing  completion:67
+    - guardrailed_texts = guardrailed_inputs.get("texts", [])
+    + guardrailed_texts = guardrailed_inputs.get("texts") or ()
+
+litellm/llms/*/chat/guardrail_translation/handler.py
+  hf-2429a78  high  fixed in 1 of 3, still old in 1
+    fixed    openai 64eec53 2026-08-29 fix(guardrails): surface post-flush stream blocks as in-stream error frames and keep guardrail_information in spend logs
+    missing  a2a:189
+    - # Add user API key metadata with prefixed keys
+    - if "litellm_metadata" not in request_data:
+    - user_metadata: Final = self.transform_user_api_key_dict_to_metadata(user_api_key_dict)
+    - if user_metadata:
+    - request_data["litellm_metadata"] = user_metadata
+    + self.merge_user_api_key_metadata_into_request(request_data, user_api_key_dict)
+  hf-64738f0  high  fixed in 1 of 3, still old in 1
+    fixed    openai 64eec53 2026-08-29 fix(guardrails): surface post-flush stream blocks as in-stream error frames and keep guardrail_information in spend logs
+    missing  a2a:190
+    - if "litellm_metadata" not in request_data:
+    - user_metadata: Final = self.transform_user_api_key_dict_to_metadata(user_api_key_dict)
+    - if user_metadata:
+    - request_data["litellm_metadata"] = user_metadata
+    + self.merge_user_api_key_metadata_into_request(request_data, user_api_key_dict)
+
+litellm/llms/*/chat/transformation.py
+  hf-308906d  high  fixed in 1 of 83, still old in 1
+    fixed    tencent 1065856 2026-08-24 fix(tencent): satisfy basedpyright budget in thinking mapping
+    missing  anthropic:1321
+    - budget: Final = thinking.get("budget_tokens")
+    + budget: Final[object] = thinking.get("budget_tokens")
+
+litellm/proxy/pass_through_endpoints/*_endpoints.py
+  hf-d63bbf7  high  fixed in 1 of 3, still old in 1
+    fixed    llm_passthrough b103536 2026-08-24 fix(passthrough): thread router-model attribution on the litellm_metadata bucket
+    missing  pass_through:1949
+    - _metadata_variable_name="metadata",
+    + _metadata_variable_name="litellm_metadata",
+
+litellm/proxy/*/common_utils.py
+  hf-9156527  high  fixed in 1 of 4, still old in 1
+    fixed    openai_files_endpoints ba64a1c 2026-08-21 fix(files): return 400 for a limit outside the documented range
+    missing  batches_endpoints:8
+    - ("below minimum", ">= 0", "integer_below_min_value")
+    - if limit < 0
+    + ("below minimum", ">= 1", "integer_below_min_value")
+    + if limit < 1
+
+litellm/llms/*/common_utils.py
+  hf-440304c  high  fixed in 1 of 49, still old in 1
+    fixed    vertex_ai 52e181d 2026-08-21 fix(vertex_ai): convert messages to contents in gemini count_tokens (#36981)
+    missing  gemini:516
+    - total_tokens=result.get("totalTokens", 0),
+    + total_tokens=result["totalTokens"],
+
+litellm/*/batch_utils.py
+  hf-67a562f  high  fixed in 1 of 3, still old in 1
+    fixed    batches 5eeccf6 2026-08-19 fix(batches): skip undecodable batch output lines when costing
+    missing  router_utils:56
+    - except json.JSONDecodeError as e:
+    + except ValueError as e:
+
+litellm/proxy/hooks/*_limiter.py
+  hf-e24761b  high  fixed in 1 of 6, still old in 1
+    fixed    batch_rate 3c34c34 2026-08-18 fix(proxy): guard candidate-count and batch cap coercion against float overflow
+    missing  model_max_budget:275
+    - except (TypeError, ValueError):
+    + except (TypeError, ValueError, OverflowError):
+
+litellm/proxy/pass_through_endpoints/*_endpoints.py
+  hf-3c041d4  high  fixed in 1 of 3, still old in 1
+    fixed    pass_through 1857f5d 2026-08-18 fix(proxy): send SSE keepalives while a slow upstream is still silent (#37322)
+    missing  llm_passthrough:1070
+    - from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+    + from litellm.proxy.common_request_processing import (
+    + ProxyBaseLLMRequestProcessing,
+    + open_sse_before_first_byte,
+    + )
+
+ui/litellm-dashboard/src/components/shared/*Select.tsx
+  hf-4a53798  high  fixed in 1 of 4, still old in 1
+    fixed    Multi de25e19 2026-08-15 fix(ui): de-duplicate the reset budget option and polish shadcn surfaces
+    missing  PaginatedMulti:122
+    - className="h-5 min-w-24 flex-1 border-0 bg-transparent py-0 text-sm"
+    + className="min-w-24"
+
+litellm/llms/*/files/transformation.py
+  hf-5afb80b  high  fixed in 1 of 8, still old in 1
+    fixed    bedrock a7250f4 2026-08-03 fix(bedrock): normalize /v1/completions and /v1/responses batch records
+    missing  vertex_ai:1034
+    - openai_request_body: dict[str, Any],
+    + openai_request_body: Mapping[str, Any],
+
+litellm/*/utils.py
+  hf-9ef689c  high  fixed in 1 of 14, still old in 1
+    fixed    responses 6ff88ba 2026-07-24 fix(responses): strip include_usage from stream_options instead of dropping the param
+    missing  images:59
+    - return mapped_params
+
+litellm/llms/*/realtime/transformation.py
+  hf-c869b72  high  fixed in 1 of 6, still old in 1
+    fixed    bedrock f1f0a0b 2026-07-21 fix(bedrock): emit Nova Sonic realtime session.created on connect and session.updated on session.update (#34133)
+    missing  gemini:674
+    - session=session,
+    + session=self._session_object(model, logging_obj),
+    + )
+    + def session_updated_event(
+    + self,
+    + model: str,
+    … 7 more lines, run: half-fixed show hf-c869b72
+
+litellm/llms/*/files/transformation.py
+  hf-5909d01  high  fixed in 1 of 8, still old in 1
+    fixed    vertex_ai 5682592 2026-06-24 fix(vertex/files): stream OpenAI->Vertex batch JSONL uploads (#31036)
+    missing  bedrock:1050
+    - extracted_file_data=extracted_file_data,
+    + content_type=content_type,
+
+litellm/llms/*/chat/transformation.py
+  hf-72c11d5  high  fixed in 1 of 83, still old in 1
+    fixed    xai 25ad7dc 2026-06-18 fix(xai): bill web_search from server_side_tool_usage_details
+    missing  anthropic:82
+    - PromptTokensDetailsWrapper,
+
+litellm/proxy/*/endpoints.py
+  hf-d43a1f7  high  fixed in 1 of 21, still old in 1
+    fixed    vector_store_endpoints 9dcb2bd 2026-04-24 fix(proxy): respect object-level permissions for managed vector store endpoints (#26351)
+    missing  vector_store_files_endpoints:601
+    - data = _update_request_data_with_litellm_managed_vector_store_registry(
+    + data = await _update_request_data_with_litellm_managed_vector_store_registry(
+
+litellm/llms/*/image_generation/transformation.py
+  hf-59a82b3  high  fixed in 1 of 15, still old in 1
+    fixed    dashscope 2e3a4bb 2026-04-23 Fix black
+    missing  edenai:14
+    - from litellm.llms.base_llm.image_generation.transformation import BaseImageGenerationConfig
+    + from litellm.llms.base_llm.image_generation.transformation import (
+    + BaseImageGenerationConfig,
+    + )
+  hf-7ac5c2c  high  fixed in 1 of 15, still old in 1
+    fixed    dashscope 2e3a4bb 2026-04-23 Fix black
+    missing  edenai:15
+    - from litellm.types.llms.openai import AllMessageValues, OpenAIImageGenerationOptionalParams
+    + from litellm.types.llms.openai import (
+    + AllMessageValues,
+    + OpenAIImageGenerationOptionalParams,
+    + )
+
+litellm/llms/*/chat/transformation.py
+  hf-6311e5f  high  fixed in 1 of 83, still old in 1
+    fixed    databricks e8519b3 2026-04-11 [Fix] Databricks: add provider prefix to response model name
+    missing  anthropic:2686
+    - model_response.model = completion_response["model"]
+    + _custom_llm_provider = litellm_params.get("custom_llm_provider") or "databricks"
+    + _response_model = completion_response.get("model") or ""
+    + model_response.model = f"{_custom_llm_provider}/{_response_model}"
+
+litellm/*/streaming_iterator.py
+  hf-56525de  high  fixed in 1 of 4, still old in 1
+    fixed    responses 8947a74 2026-04-07 fix(cache): persist and replay streamed Responses API requests (#24580)
+    missing  interactions:133
+    - response=response,
+    + response=httpx.Response(200),
+
+litellm/proxy/management_endpoints/*_endpoints.py
+  hf-169dc99  high  fixed in 1 of 30, still old in 1
+    fixed    budget_management 632beb0 2026-03-30 fix new_budget
+    missing  mcp_management:3406
+    - except UniqueViolationError:
+    + except Exception as e:
+    + if not isinstance(e, UniqueViolationError):
+    + raise
+  hf-efffa8d  high  fixed in 1 of 30, still old in 1
+    fixed    model_management 9a0a216 2026-03-23 Fix code qa issues
+    missing  team:93
+    - UpdateTeamRequest,
+  hf-3985242  high  fixed in 1 of 30, still old in 1
+    fixed    key_management f6cd0a8 2026-03-18 fix: /key/update returns 404 (not 401) for nonexistent body key
+    missing  team:2244
+    - raise HTTPException(
+    - status_code=404,
+    - detail={"error": f"Team not found, passed team_id={data.team_id}"},
+    + raise ProxyException(
+    + message=f"Key not found. Passed key={data.key}",
+    + type=ProxyErrorTypes.not_found_error,
+    … 2 more lines, run: half-fixed show hf-3985242
+
+litellm/types/*/main.py
+  hf-6139d52  high  fixed in 1 of 6, still old in 1
+    fixed    videos 4a7ef7b 2026-03-16 fix(video): enforce character endpoint video MIME handling
+    missing  images:5
+    - from litellm.types.utils import FileTypes
+    + FileTypes = Any
+
+litellm/*/main.py
+  hf-34bbea1  high  fixed in 14 of 24, still old in 1
+    fixed    batches, containers, evals, google_genai, images, interactions, ocr, realtime_api, rerank_api, responses, search, skills, vector_store_files, vector_stores ca4329a 2026-03-15 Root cause fix - migrate all logging update to use 1 function - for centralized kwarg updates (#23659)
+    missing  passthrough:466
+    - litellm_logging_obj.update_environment_variables(
+    + litellm_logging_obj.update_from_kwargs(
+    + kwargs=kwargs,
+
+551 lower-confidence changes hidden (--confidence medium, or --all)

@@ -20,6 +20,7 @@
   ],
   "scripts": {
     "build:fallback": "node scripts/build-fallback.js",
+    "build:demo": "node scripts/render-demo.js",
     "check:metadata": "node scripts/check-metadata.js",
     "check:fallback": "node scripts/check-fallback.js",
     "check:package": "node scripts/check-package.js",
