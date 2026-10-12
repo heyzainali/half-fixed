@@ -15,3 +15,13 @@ Add an entry under `## [Unreleased]` in the same pull request as any change a us
 - `.half-fixed.json` records exemptions with reasons, and sets `minMembers`, `maxCommits`, `include`, and `exclude`.
 - `half-fixed` skill: scan, triage every finding with evidence, and fix confirmed gaps test-first.
 - `house-style` skill: draft commits and pull requests that follow a repository's written rules and its recently merged pull requests.
+
+### Security
+
+Scanning someone else's repository means reading text and settings that its authors control, so half-fixed treats all of it as untrusted:
+
+- `--rev` and `--base` are resolved to commits before git sees them, and a value that starts with `-` is refused, so it can't reach git as an option such as `--output=<file>`.
+- Text from the scanned repository, such as commit subjects, paths, and code, is printed with terminal control characters and bidirectional overrides escaped, so it can't rewrite your terminal or disguise code. `--json` output was already escaped.
+- Globs in `.half-fixed.json` are matched in linear time, and values of the wrong type are ignored, so a hostile config can't stall a scan.
+- The scan runs `git log` with `--no-textconv` and `--no-ext-diff`, so it never starts a diff or text-conversion program.
+- Both skills treat a repository's documents, issues, and pull requests as data, and ask before running a project's install, build, or test commands in a repository you don't trust.

@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'bun:test';
 import { changeBlocks, parseLog, pickWindow } from '../src/diff.js';
-import { discoverGroups, globToRegExp, keysFor } from '../src/groups.js';
+import { discoverGroups, globMatch, keysFor } from '../src/groups.js';
 import { indexOfWindow, isNoise, normalizeText } from '../src/normalize.js';
-import { changedLines, palette, renderGroups, renderScan, renderShow, trim } from '../src/report.js';
+import { changedLines, palette, renderGroups, renderScan, renderShow, safe, trim } from '../src/report.js';
 import { isFixCommit } from '../src/scan.js';
 
 async function collect(gen) {
@@ -43,13 +43,24 @@ describe('groups', () => {
     expect([...discoverGroups(['a/x.md', 'b/x.md', 'c/x.md'], { include: ['**/*.md'] }).keys()]).toEqual(['*/x.md']);
   });
 
-  test('converts globs', () => {
-    expect(globToRegExp('**/vendor/**').test('vendor/a/b.php')).toBe(true);
-    expect(globToRegExp('**/vendor/**').test('x/vendor/b.php')).toBe(true);
-    expect(globToRegExp('src/*.js').test('src/a.js')).toBe(true);
-    expect(globToRegExp('src/*.js').test('src/a/b.js')).toBe(false);
-    expect(globToRegExp('src/?.js').test('src/a.js')).toBe(true);
-    expect(globToRegExp('a.b+c').test('a.b+c')).toBe(true);
+  test('matches globs', () => {
+    expect(globMatch('**/vendor/**', 'vendor/a/b.php')).toBe(true);
+    expect(globMatch('**/vendor/**', 'x/vendor/b.php')).toBe(true);
+    expect(globMatch('**/x', 'ax')).toBe(false);
+    expect(globMatch('a/**/b', 'a/b')).toBe(true);
+    expect(globMatch('a**b', 'a/x/b')).toBe(true);
+    expect(globMatch('src/*.js', 'src/a.js')).toBe(true);
+    expect(globMatch('src/*.js', 'src/a/b.js')).toBe(false);
+    expect(globMatch('src/?.js', 'src/a.js')).toBe(true);
+    expect(globMatch('src/?.js', 'src//.js')).toBe(false);
+    expect(globMatch('a.b+c', 'a.b+c')).toBe(true);
+    expect(globMatch('a.b+c', 'axbbc')).toBe(false);
+  });
+
+  test('matches globs in linear time, so a hostile .half-fixed.json cannot stall a scan', () => {
+    const started = performance.now();
+    expect(globMatch(`${'**b'.repeat(30)}**c`, 'b'.repeat(200))).toBe(false);
+    expect(performance.now() - started).toBeLessThan(1000);
   });
 });
 
@@ -207,6 +218,28 @@ describe('report', () => {
     expect(text).toContain('2 lower-confidence changes hidden');
     expect(text).toContain('1 dismissed by .half-fixed.json');
     expect(text.match(/src\/\*\/x\.js/g)).toHaveLength(1);
+  });
+
+  test('escapes terminal control sequences and bidirectional overrides from the repository', () => {
+    expect(safe('a\x1b]0;title\x07b\tc\u202ed\x9b')).toBe('a\\u001b]0;title\\u0007b\tc\\u202ed\\u009b');
+    const hostile = {
+      ...finding,
+      group: 'src/*/\x1b[2Jx.js',
+      old: ['keep', 'a1 \x1b]52;c;cGF5bG9hZA==\x07'],
+      new: ['keep', 'b1 \u202e'],
+      fixedIn: [{ ...finding.fixedIn[0], member: 'o\x1bne', path: 'p\x1b', subject: 'fix: \x1b]0;pwned\x07' }],
+      missing: [{ member: 't\x1bhree', path: 'q\x1b', line: 3, needs: ['$\x1b'] }],
+    };
+    const outputs = [
+      renderScan({ rev: 'HEAD\x1b', base: null, commitsScanned: 1, groupsScanned: 1, warnings: [], findings: [hostile], dismissed: [] }),
+      renderShow(hostile, 'why\x1b'),
+      renderGroups({ rev: 'HEAD', groups: [{ pattern: 'a/\x1b/b.js', members: ['x\x1b'] }] }),
+    ];
+    for (const text of outputs) {
+      expect(text).not.toContain('\x1b');
+      expect(text).not.toContain('\u202e');
+    }
+    expect(outputs[0]).toContain('fix: \\u001b]0;pwned\\u0007');
   });
 
   test('renders a dismissed finding and groups', () => {

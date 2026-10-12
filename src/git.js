@@ -43,6 +43,17 @@ export function repoRoot(cwd) {
   return root.trim();
 }
 
+/**
+ * Resolves a revision to a commit SHA. A value that starts with "-" would reach
+ * git as an option (such as --output=<file>), so it is refused outright.
+ */
+export function resolveCommit(cwd, rev) {
+  if (rev.startsWith('-')) throw new Error(`not a revision: ${rev}`);
+  const sha = tryGit(cwd, ['rev-parse', '--verify', '--quiet', `${rev}^{commit}`]);
+  if (sha === null) throw new Error(`unknown revision: ${rev}`);
+  return sha.trim();
+}
+
 export function isShallow(cwd) {
   return (tryGit(cwd, ['rev-parse', '--is-shallow-repository']) || '').trim() === 'true';
 }

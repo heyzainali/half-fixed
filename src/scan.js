@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { RevReader, git, gitLines, isShallow, repoRoot } from './git.js';
+import { RevReader, git, gitLines, isShallow, repoRoot, resolveCommit } from './git.js';
 import { LOG_FORMAT, changeBlocks, parseLog, pickWindow } from './diff.js';
 import { discoverGroups, keysFor } from './groups.js';
 import { indexOfWindow } from './normalize.js';
@@ -94,13 +94,14 @@ function localNames(window, own) {
 
 function groupsAt(root, config, options) {
   const rev = options.rev || 'HEAD';
+  const commit = resolveCommit(root, rev);
   const minMembers = options.minMembers || config.minMembers || 3;
-  const files = git(root, ['ls-tree', '-r', '--name-only', rev]).split('\n').filter(Boolean);
+  const files = git(root, ['ls-tree', '-r', '--name-only', commit]).split('\n').filter(Boolean);
   const groups = discoverGroups(files, { minMembers, include: config.include, exclude: config.exclude });
   if (options.group) {
     for (const pattern of [...groups.keys()]) if (!pattern.includes(options.group)) groups.delete(pattern);
   }
-  return { rev, groups };
+  return { rev, commit, groups };
 }
 
 export function listGroups(cwd, options = {}) {
@@ -121,7 +122,8 @@ export function listGroups(cwd, options = {}) {
 export async function scan(cwd, options = {}) {
   const root = repoRoot(cwd);
   const config = loadConfig(root);
-  const { rev, groups } = groupsAt(root, config, options);
+  const { rev, commit: head, groups } = groupsAt(root, config, options);
+  const base = options.base ? resolveCommit(root, options.base) : null;
   const maxCommits = options.maxCommits || config.maxCommits || 5000;
   const warnings = [];
   if (isShallow(root)) warnings.push('shallow clone: history is incomplete, run `git fetch --unshallow` for a full scan');
@@ -129,11 +131,11 @@ export async function scan(cwd, options = {}) {
   const result = { root, rev, base: options.base || null, commitsScanned: 0, groupsScanned: groups.size, warnings, findings: [], dismissed: [] };
   if (groups.size === 0) return result;
 
-  const reader = new RevReader(root, rev);
+  const reader = new RevReader(root, head);
   const findings = new Map();
-  const args = ['log', '--no-merges', '--no-renames', '--no-color', '--no-ext-diff', '-U3', '--date=short', LOG_FORMAT, '-p', `--max-count=${maxCommits}`];
+  const args = ['log', '--no-merges', '--no-renames', '--no-color', '--no-ext-diff', '--no-textconv', '-U3', '--date=short', LOG_FORMAT, '-p', `--max-count=${maxCommits}`];
   if (options.since) args.push(`--since=${options.since}`);
-  args.push(options.base ? `${options.base}..${rev}` : rev, '--', ...[...groups.keys()].map((p) => `:(glob)${p}`));
+  args.push(base ? `${base}..${head}` : head, '--', ...[...groups.keys()].map((p) => `:(glob)${p}`));
 
   for await (const commit of parseLog(gitLines(root, args))) {
     result.commitsScanned++;

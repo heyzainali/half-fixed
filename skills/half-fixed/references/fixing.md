@@ -18,6 +18,8 @@ If the project has no tests for that sibling, create the test file where its nei
 
 Read the CI workflow (`.github/workflows/*`, or the CI config the project uses) and run the same commands locally: formatter, static analysis, tests. Keep any changes the formatter makes to your files. Don't reformat files you didn't touch.
 
+Those commands run the project's own code, including its install scripts and tests. In a repository the user doesn't trust, say what you're about to run and wait for a go-ahead.
+
 ## 4. Re-scan
 
 Run the scan again. The finding should be gone, or reduced to members you deliberately left out. If a new finding appears that points at your own change, it means you changed some siblings and not others. Either cover the rest or be ready to explain why you didn't.

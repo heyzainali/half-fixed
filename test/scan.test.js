@@ -1,7 +1,8 @@
 import { describe, expect, test } from 'bun:test';
 import { execFileSync } from 'node:child_process';
-import { writeFileSync } from 'node:fs';
+import { existsSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { gitLines } from '../src/git.js';
 import { listGroups, scan } from '../src/scan.js';
 import { GIT_ENV, Repo, WRAPPED_PARAMETERS, fixTwoOfFive, providerFiles, tempDir, toolMap } from './helpers.js';
 
@@ -155,6 +156,22 @@ describe('scan', () => {
     expect((await scan(r.dir)).groupsScanned).toBe(0);
   });
 
+  test('ignores config values of the wrong shape', async () => {
+    const r = fixTwoOfFive();
+    r.write({
+      '.half-fixed.json': JSON.stringify({
+        include: [42, '', 'x'.repeat(513)],
+        exclude: 'src/**',
+        minMembers: '9',
+        maxCommits: -1,
+        exempt: [null, { id: 7 }],
+      }),
+    });
+    expect((await scan(r.dir)).findings).toHaveLength(1);
+    r.write({ '.half-fixed.json': 'null' });
+    expect((await scan(r.dir)).findings).toHaveLength(1);
+  });
+
   test('rejects a config file that is not JSON', async () => {
     const r = fixTwoOfFive();
     r.write({ '.half-fixed.json': '{ nope' });
@@ -202,8 +219,20 @@ describe('scan', () => {
   test('fails outside a git repository and on a bad revision', async () => {
     await expect(scan(tempDir())).rejects.toThrow('not a git repository');
     const r = fixTwoOfFive();
-    expect(() => listGroups(r.dir, { rev: 'no-such-rev' })).toThrow();
-    await expect(scan(r.dir, { base: 'no-such-rev' })).rejects.toThrow('git log failed');
+    expect(() => listGroups(r.dir, { rev: 'no-such-rev' })).toThrow('unknown revision: no-such-rev');
+    await expect(scan(r.dir, { base: 'no-such-rev' })).rejects.toThrow('unknown revision: no-such-rev');
+  });
+
+  test('names the git command that failed', () => {
+    expect(() => gitLines(tempDir(), ['log'])).toThrow('git log failed');
+  });
+
+  test('refuses a revision that git would read as an option', async () => {
+    const r = fixTwoOfFive();
+    const target = join(tempDir(), 'written');
+    await expect(scan(r.dir, { base: `--output=${target}` })).rejects.toThrow('not a revision');
+    expect(() => listGroups(r.dir, { rev: '--output=x' })).toThrow('not a revision');
+    expect(existsSync(`${target}..HEAD`)).toBe(false);
   });
 
   test('lists groups sorted with their members', () => {

@@ -25,32 +25,72 @@ export const DEFAULT_EXCLUDE = [
   '**/*.d.ts',
 ];
 
-export function globToRegExp(glob) {
-  let re = '';
+/**
+ * Splits a glob into tokens: a double star followed by a slash (any directories,
+ * or none), a double star (anything), a single star (anything but a slash), `?`
+ * (one character but a slash), or a literal character.
+ */
+function tokenize(glob) {
+  const tokens = [];
   for (let i = 0; i < glob.length; i++) {
-    const c = glob[i];
-    if (c === '*' && glob[i + 1] === '*') {
+    if (glob[i] === '*' && glob[i + 1] === '*') {
       i++;
       if (glob[i + 1] === '/') {
         i++;
-        re += '(?:.*/)?';
+        tokens.push('**/');
       } else {
-        re += '.*';
+        tokens.push('**');
       }
-    } else if (c === '*') {
-      re += '[^/]*';
-    } else if (c === '?') {
-      re += '[^/]';
+    } else if (glob[i] === '*' || glob[i] === '?') {
+      tokens.push(glob[i]);
     } else {
-      re += c.replace(/[.+^${}()|[\]\\]/g, '\\$&');
+      tokens.push({ literal: glob[i] });
     }
   }
-  return new RegExp(`^${re}$`);
+  return tokens;
+}
+
+/**
+ * Matches a path against glob tokens in time proportional to their product.
+ * Globs can come from a scanned repository's .half-fixed.json, so a regular
+ * expression, which can backtrack exponentially on patterns like `**a**a**a`,
+ * isn't safe here.
+ */
+function matchTokens(tokens, path) {
+  const n = path.length;
+  let next = new Array(n + 2).fill(false);
+  next[n] = true;
+  for (let t = tokens.length - 1; t >= 0; t--) {
+    const token = tokens[t];
+    const here = new Array(n + 2).fill(false);
+    let laterSlash = false;
+    for (let i = n; i >= 0; i--) {
+      const ch = path[i];
+      if (token === '**/') {
+        laterSlash ||= i < n && ch === '/' && next[i + 1];
+        here[i] = next[i] || laterSlash;
+      } else if (token === '**') {
+        here[i] = next[i] || (i < n && here[i + 1]);
+      } else if (token === '*') {
+        here[i] = next[i] || (i < n && ch !== '/' && here[i + 1]);
+      } else if (token === '?') {
+        here[i] = i < n && ch !== '/' && next[i + 1];
+      } else {
+        here[i] = i < n && ch === token.literal && next[i + 1];
+      }
+    }
+    next = here;
+  }
+  return next[0];
+}
+
+export function globMatch(glob, path) {
+  return matchTokens(tokenize(glob), path);
 }
 
 export function matcher(globs) {
-  const res = globs.map(globToRegExp);
-  return (path) => res.some((re) => re.test(path));
+  const compiled = globs.map(tokenize);
+  return (path) => compiled.some((tokens) => matchTokens(tokens, path));
 }
 
 function extOf(path) {

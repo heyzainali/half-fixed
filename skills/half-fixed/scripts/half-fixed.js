@@ -90,6 +90,14 @@ function repoRoot(cwd) {
     throw new Error(`not a git repository: ${cwd}`);
   return root.trim();
 }
+function resolveCommit(cwd, rev) {
+  if (rev.startsWith("-"))
+    throw new Error(`not a revision: ${rev}`);
+  const sha = tryGit(cwd, ["rev-parse", "--verify", "--quiet", `${rev}^{commit}`]);
+  if (sha === null)
+    throw new Error(`unknown revision: ${rev}`);
+  return sha.trim();
+}
 function isShallow(cwd) {
   return (tryGit(cwd, ["rev-parse", "--is-shallow-repository"]) || "").trim() === "true";
 }
@@ -306,31 +314,55 @@ var DEFAULT_EXCLUDE = [
   "**/*.min.js",
   "**/*.d.ts"
 ];
-function globToRegExp(glob) {
-  let re = "";
+function tokenize(glob) {
+  const tokens = [];
   for (let i = 0;i < glob.length; i++) {
-    const c = glob[i];
-    if (c === "*" && glob[i + 1] === "*") {
+    if (glob[i] === "*" && glob[i + 1] === "*") {
       i++;
       if (glob[i + 1] === "/") {
         i++;
-        re += "(?:.*/)?";
+        tokens.push("**/");
       } else {
-        re += ".*";
+        tokens.push("**");
       }
-    } else if (c === "*") {
-      re += "[^/]*";
-    } else if (c === "?") {
-      re += "[^/]";
+    } else if (glob[i] === "*" || glob[i] === "?") {
+      tokens.push(glob[i]);
     } else {
-      re += c.replace(/[.+^${}()|[\]\\]/g, "\\$&");
+      tokens.push({ literal: glob[i] });
     }
   }
-  return new RegExp(`^${re}$`);
+  return tokens;
+}
+function matchTokens(tokens, path) {
+  const n = path.length;
+  let next = new Array(n + 2).fill(false);
+  next[n] = true;
+  for (let t = tokens.length - 1;t >= 0; t--) {
+    const token = tokens[t];
+    const here = new Array(n + 2).fill(false);
+    let laterSlash = false;
+    for (let i = n;i >= 0; i--) {
+      const ch = path[i];
+      if (token === "**/") {
+        laterSlash ||= i < n && ch === "/" && next[i + 1];
+        here[i] = next[i] || laterSlash;
+      } else if (token === "**") {
+        here[i] = next[i] || i < n && here[i + 1];
+      } else if (token === "*") {
+        here[i] = next[i] || i < n && ch !== "/" && here[i + 1];
+      } else if (token === "?") {
+        here[i] = i < n && ch !== "/" && next[i + 1];
+      } else {
+        here[i] = i < n && ch === token.literal && next[i + 1];
+      }
+    }
+    next = here;
+  }
+  return next[0];
 }
 function matcher(globs) {
-  const res = globs.map(globToRegExp);
-  return (path) => res.some((re) => re.test(path));
+  const compiled = globs.map(tokenize);
+  return (path) => compiled.some((tokens) => matchTokens(tokens, path));
 }
 function extOf(path) {
   const base = path.slice(path.lastIndexOf("/") + 1);
@@ -385,6 +417,8 @@ function discoverGroups(files, { minMembers = 3, include = [], exclude = [] } = 
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 var CONFIG_FILE = ".half-fixed.json";
+var globs = (value) => Array.isArray(value) ? value.filter((g) => typeof g === "string" && g.length > 0 && g.length <= 512) : [];
+var count = (value) => Number.isInteger(value) && value > 0 ? value : undefined;
 function loadConfig(root) {
   const path = join(root, CONFIG_FILE);
   if (!existsSync(path))
@@ -396,11 +430,11 @@ function loadConfig(root) {
     throw new Error(`${CONFIG_FILE}: ${err.message}`);
   }
   return {
-    minMembers: raw.minMembers,
-    maxCommits: raw.maxCommits,
-    include: Array.isArray(raw.include) ? raw.include : [],
-    exclude: Array.isArray(raw.exclude) ? raw.exclude : [],
-    exempt: Array.isArray(raw.exempt) ? raw.exempt.filter((e) => e && typeof e.id === "string") : []
+    minMembers: count(raw?.minMembers),
+    maxCommits: count(raw?.maxCommits),
+    include: globs(raw?.include),
+    exclude: globs(raw?.exclude),
+    exempt: Array.isArray(raw?.exempt) ? raw.exempt.filter((e) => e && typeof e.id === "string") : []
   };
 }
 
@@ -472,8 +506,9 @@ function localNames(window, own) {
 }
 function groupsAt(root, config, options) {
   const rev = options.rev || "HEAD";
+  const commit = resolveCommit(root, rev);
   const minMembers = options.minMembers || config.minMembers || 3;
-  const files = git(root, ["ls-tree", "-r", "--name-only", rev]).split(`
+  const files = git(root, ["ls-tree", "-r", "--name-only", commit]).split(`
 `).filter(Boolean);
   const groups = discoverGroups(files, { minMembers, include: config.include, exclude: config.exclude });
   if (options.group) {
@@ -481,7 +516,7 @@ function groupsAt(root, config, options) {
       if (!pattern.includes(options.group))
         groups.delete(pattern);
   }
-  return { rev, groups };
+  return { rev, commit, groups };
 }
 function listGroups(cwd, options = {}) {
   const root = repoRoot(cwd);
@@ -495,7 +530,8 @@ function listGroups(cwd, options = {}) {
 async function scan(cwd, options = {}) {
   const root = repoRoot(cwd);
   const config = loadConfig(root);
-  const { rev, groups } = groupsAt(root, config, options);
+  const { rev, commit: head, groups } = groupsAt(root, config, options);
+  const base = options.base ? resolveCommit(root, options.base) : null;
   const maxCommits = options.maxCommits || config.maxCommits || 5000;
   const warnings = [];
   if (isShallow(root))
@@ -503,12 +539,12 @@ async function scan(cwd, options = {}) {
   const result = { root, rev, base: options.base || null, commitsScanned: 0, groupsScanned: groups.size, warnings, findings: [], dismissed: [] };
   if (groups.size === 0)
     return result;
-  const reader = new RevReader(root, rev);
+  const reader = new RevReader(root, head);
   const findings = new Map;
-  const args = ["log", "--no-merges", "--no-renames", "--no-color", "--no-ext-diff", "-U3", "--date=short", LOG_FORMAT, "-p", `--max-count=${maxCommits}`];
+  const args = ["log", "--no-merges", "--no-renames", "--no-color", "--no-ext-diff", "--no-textconv", "-U3", "--date=short", LOG_FORMAT, "-p", `--max-count=${maxCommits}`];
   if (options.since)
     args.push(`--since=${options.since}`);
-  args.push(options.base ? `${options.base}..${rev}` : rev, "--", ...[...groups.keys()].map((p) => `:(glob)${p}`));
+  args.push(base ? `${base}..${head}` : head, "--", ...[...groups.keys()].map((p) => `:(glob)${p}`));
   for await (const commit of parseLog(gitLines(root, args))) {
     result.commitsScanned++;
     const fix = isFixCommit(commit.subject);
@@ -611,6 +647,10 @@ function palette(color) {
   const paint = (code) => (s) => color ? `\x1B[${code}m${s}\x1B[0m` : String(s);
   return { red: paint(31), green: paint(32), yellow: paint(33), dim: paint(2), bold: paint(1) };
 }
+var UNSAFE = /[\u0000-\u0008\u000b-\u001f\u007f-\u009f\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/g;
+function safe(value) {
+  return String(value).replace(UNSAFE, (ch) => `\\u${ch.charCodeAt(0).toString(16).padStart(4, "0")}`);
+}
 var plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 function changedLines(finding) {
   const kept = new Set(finding.old.filter((l) => finding.new.includes(l)));
@@ -626,7 +666,7 @@ function fixedLines(finding, c) {
       byCommit.set(f.commit, { ...f, members: [] });
     byCommit.get(f.commit).members.push(f.member);
   }
-  return [...byCommit.values()].map((f) => `${c.green(f.members.join(", "))} ${c.dim(`${f.commit.slice(0, 7)} ${f.date}`)} ${f.subject}`);
+  return [...byCommit.values()].map((f) => `${c.green(safe(f.members.join(", ")))} ${c.dim(`${f.commit.slice(0, 7)} ${f.date}`)} ${safe(f.subject)}`);
 }
 function trim(line, max = 100) {
   return line.length > max ? `${line.slice(0, max - 1)}…` : line;
@@ -638,22 +678,22 @@ function renderScan(result, { color = false } = {}) {
   for (const w of result.warnings)
     out.push(c.yellow(`warning: ${w}`));
   const head = shown.length ? c.red(c.bold(`${plural(shown.length, "half-fixed change")} found`)) : c.green(c.bold("no half-fixed changes found"));
-  const range = result.base ? `${result.base}..${result.rev}` : `at ${result.rev}`;
+  const range = safe(result.base ? `${result.base}..${result.rev}` : `at ${result.rev}`);
   out.push(`${head} ${c.dim(`(${plural(result.commitsScanned, "commit")}, ${plural(result.groupsScanned, "sibling group")}, ${range})`)}`);
   let group = null;
   for (const f of shown) {
     if (f.group !== group) {
       group = f.group;
-      out.push("", c.bold(group));
+      out.push("", c.bold(safe(group)));
     }
     const tag = { high: c.red("high"), medium: c.yellow("medium"), low: c.dim("low") }[f.confidence];
     out.push(`  ${c.bold(f.id)}  ${tag}  fixed in ${f.fixedIn.length} of ${f.size}, still old in ${f.missing.length}`);
     for (const line of fixedLines(f, c))
       out.push(`    fixed    ${line}`);
-    out.push(`    missing  ${f.missing.map((m) => c.red(m.member) + c.dim(`:${m.line}`)).join(", ")}`);
+    out.push(`    missing  ${f.missing.map((m) => c.red(safe(m.member)) + c.dim(`:${m.line}`)).join(", ")}`);
     const diff = changedLines(f);
     for (const d of diff.slice(0, 6))
-      out.push(c.dim(`    ${d.t} ${trim(d.l)}`));
+      out.push(c.dim(`    ${d.t} ${trim(safe(d.l))}`));
     if (diff.length > 6)
       out.push(c.dim(`    … ${diff.length - 6} more lines, run: half-fixed show ${f.id}`));
   }
@@ -671,34 +711,34 @@ function renderShow(finding, dismissedReason, { color = false } = {}) {
   const c = palette(color);
   const out = [];
   out.push(`${c.bold(finding.id)}  ${finding.confidence}  ${finding.kind}`);
-  out.push(`group    ${finding.group} (${finding.size} members)`);
+  out.push(`group    ${safe(finding.group)} (${finding.size} members)`);
   if (dismissedReason !== undefined)
-    out.push(c.dim(`dismissed: ${dismissedReason || "no reason given"}`));
+    out.push(c.dim(`dismissed: ${safe(dismissedReason || "no reason given")}`));
   out.push("", c.bold("Fixed in"));
   for (const f of finding.fixedIn) {
-    out.push(`  ${c.green(f.member)}  ${f.path}`);
-    out.push(c.dim(`    ${f.commit} ${f.date} ${f.subject}`));
+    out.push(`  ${c.green(safe(f.member))}  ${safe(f.path)}`);
+    out.push(c.dim(`    ${f.commit} ${f.date} ${safe(f.subject)}`));
   }
   out.push("", c.bold("Still has the old code"));
   for (const m of finding.missing) {
-    const needs = m.needs.length ? c.dim(`  (fix uses ${m.needs.join(", ")}, not in this file)`) : "";
-    out.push(`  ${c.red(m.member)}  ${m.path}:${m.line}${needs}`);
+    const needs = m.needs.length ? c.dim(`  (fix uses ${safe(m.needs.join(", "))}, not in this file)`) : "";
+    out.push(`  ${c.red(safe(m.member))}  ${safe(m.path)}:${m.line}${needs}`);
   }
   out.push("", c.bold("Old code (normalized)"));
   for (const l of finding.old)
-    out.push(c.red(`  - ${l}`));
+    out.push(c.red(`  - ${safe(l)}`));
   out.push("", c.bold("New code (normalized)"));
   for (const l of finding.new)
-    out.push(c.green(`  + ${l}`));
+    out.push(c.green(`  + ${safe(l)}`));
   out.push("", c.dim(`Next: git show ${finding.fixedIn[0].commit.slice(0, 12)} to read the original fix, then decide whether each sibling needs it.`));
   return out.join(`
 `);
 }
 function renderGroups(result, { color = false } = {}) {
   const c = palette(color);
-  const out = [c.bold(`${plural(result.groups.length, "sibling group")} at ${result.rev}`)];
+  const out = [c.bold(`${plural(result.groups.length, "sibling group")} at ${safe(result.rev)}`)];
   for (const g of result.groups)
-    out.push(`  ${g.pattern}  ${c.dim(`${g.members.length}: ${g.members.join(", ")}`)}`);
+    out.push(`  ${safe(g.pattern)}  ${c.dim(`${g.members.length}: ${safe(g.members.join(", "))}`)}`);
   return out.join(`
 `);
 }
