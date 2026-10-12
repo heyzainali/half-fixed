@@ -270,7 +270,7 @@ bun run half-fixed -- scan /path/to/repo
 
 ## License
 
-half-fixed is released under the [MIT License](LICENSE). Some build scripts are adapted from [danjdewhurst/story-skills](https://github.com/danjdewhurst/story-skills); see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+half-fixed is released under the [MIT License](LICENSE).
 
 <div align="center">
 <br>

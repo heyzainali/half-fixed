@@ -1,246 +1,167 @@
 #!/usr/bin/env node
-// Adapted from danjdewhurst/story-skills (MIT).
-// `bun run release <patch|minor|major|X.Y.Z> [--dry-run]` bumps every version
-// file, moves the changelog's Unreleased entries under the new version,
-// rebuilds the fallback, commits, tags, pushes, and creates the GitHub
-// release. The tag push runs .github/workflows/publish.yml, which publishes
-// to npm through trusted publishing.
-import { execFileSync } from "node:child_process";
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
-import { missingBunMessage } from "./bun-missing.js";
-import { CHANGELOG_FILE, promoteUnreleased, unreleasedEntries } from "./changelog.js";
+// Cuts a release from main:
+//
+//   bun run release <patch|minor|major|X.Y.Z> [--dry-run]
+//
+// Everything is checked before anything is written: the branch, the working
+// tree, the tag, GitHub, npm, the changelog, and every check CI runs. Then the
+// version moves in each file that holds it, the Unreleased changelog entries
+// become the new version's section, the bundle is rebuilt, and the release
+// commit and its tag are pushed together. The GitHub release uses the same
+// changelog entries as its notes. Pushing the tag starts
+// .github/workflows/publish.yml, which publishes to npm with provenance.
+// --dry-run stops once the checks pass.
+import { writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { BUNDLE, ROOT, readJson, readText, run, script } from './lib.js';
 
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const VERSION_FILES = ["package.json", ".codex-plugin/plugin.json", ".claude-plugin/plugin.json"];
-const VERSION_MODULE = "src/version.js";
-const FALLBACK_FILE = "skills/half-fixed/scripts/half-fixed.js";
-const RELEASE_BRANCH = "main";
-export const PREFLIGHT = ["check:metadata", "test:coverage", "check:node-help"];
+const BRANCH = 'main';
+const REPO = 'https://github.com/heyzainali/half-fixed';
+const CHANGELOG = 'CHANGELOG.md';
+const USAGE = 'Usage: bun run release <patch|minor|major|X.Y.Z> [--dry-run]';
+const CHECKS = ['check:metadata', 'test:coverage', 'check:node-help', 'check:package'];
 
-// Semver forbids leading zeros: npm would publish 0.11.01 as 0.11.1 while the
-// tag, manifests, and `half-fixed --version` kept 0.11.01.
-const PLAIN_VERSION = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
-export const USAGE = "Usage: bun run release <patch|minor|major|MAJOR.MINOR.PATCH> [--dry-run]";
+// Each file holds the version exactly once, written like this.
+const VERSION_FILES = {
+  'package.json': (version) => `"version": "${version}"`,
+  '.claude-plugin/plugin.json': (version) => `"version": "${version}"`,
+  '.codex-plugin/plugin.json': (version) => `"version": "${version}"`,
+  'src/version.js': (version) => `export const VERSION = "${version}";`,
+};
 
-export function isAbsentGitHubRelease(error) {
-  return /release not found/i.test(`${error.stderr ?? ""}\n${error.message ?? ""}`);
+// No leading zeros: npm would publish 1.02.0 as 1.2.0, and the tag would no longer match.
+const SEMVER = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
+
+const git = (...args) => run('git', args).trim();
+
+function numbers(version) {
+  const match = SEMVER.exec(version);
+  return match ? match.slice(1).map(Number) : null;
 }
 
-// `npm view name@version` exits non-zero with E404 when the package or that
-// version has never been published; anything else (auth, network) is a real error.
-export function isAbsentNpmVersion(error) {
-  return /\bE404\b/.test(`${error.stderr ?? ""}\n${error.message ?? ""}`);
+function nextVersion(current, request) {
+  const now = numbers(current);
+  if (!now) throw new Error(`package.json version ${current} is not MAJOR.MINOR.PATCH.`);
+  const [major, minor, patch] = now;
+  if (request === 'major') return `${major + 1}.0.0`;
+  if (request === 'minor') return `${major}.${minor + 1}.0`;
+  if (request === 'patch') return `${major}.${minor}.${patch + 1}`;
+  const wanted = numbers(request);
+  if (!wanted) throw new Error(`"${request}" is not patch, minor, major, or a MAJOR.MINOR.PATCH version without leading zeros.\n${USAGE}`);
+  const first = wanted.findIndex((value, index) => value !== now[index]);
+  if (first === -1 || wanted[first] < now[first]) throw new Error(`${request} is not newer than ${current}.`);
+  return request;
 }
 
-// --atomic makes the remote accept both refs or neither, so a rejected main
-// push can never leave a published tag pointing at a commit that is not on main.
-export function releasePushArgs(tag) {
-  return ["push", "--atomic", "origin", RELEASE_BRANCH, tag];
-}
+/** Moves the Unreleased entries under a dated heading for `version` and updates the compare links. */
+function promote(text, previous, version, date) {
+  const lines = text.split('\n');
+  const heading = lines.indexOf('## [Unreleased]');
+  if (heading === -1) throw new Error(`${CHANGELOG} has no "## [Unreleased]" heading.`);
+  if (lines.some((line) => line.startsWith(`## [${version}]`))) throw new Error(`${CHANGELOG} already has a ${version} section.`);
 
-// Exactly one bump and at most --dry-run. Anything else is refused before any
-// check runs, so a mistyped `--dryrun` can never fall through to a real release.
-export function parseReleaseArgs(argv) {
-  const flags = argv.filter((arg) => arg.startsWith("-"));
-  const positionals = argv.filter((arg) => !arg.startsWith("-"));
-  const unknown = flags.filter((arg) => arg !== "--dry-run");
-  if (unknown.length > 0) {
-    throw new Error(`Unknown option ${unknown.join(" ")}. ${USAGE}`);
+  // The section runs to the next version heading or the link list at the foot.
+  let end = heading + 1;
+  while (end < lines.length && !lines[end].startsWith('## [') && !/^\[[^\]]+\]: /.test(lines[end])) end += 1;
+  const entries = lines.slice(heading + 1, end);
+  while (entries.length > 0 && entries[0].trim() === '') entries.shift();
+  while (entries.length > 0 && entries[entries.length - 1].trim() === '') entries.pop();
+  if (!entries.some((line) => /^[-*] \S/.test(line))) {
+    throw new Error(`${CHANGELOG} has nothing under "## [Unreleased]". Add the changes users will notice first.`);
   }
-  if (positionals.length !== 1) {
-    throw new Error(`Expected one version bump. ${USAGE}`);
+
+  const result = [...lines.slice(0, heading), '## [Unreleased]', '', `## [${version}] - ${date}`, '', ...entries, '', ...lines.slice(end)];
+  const since = previous === '0.0.0' ? `${REPO}/releases/tag/v${version}` : `${REPO}/compare/v${previous}...v${version}`;
+  const links = [`[Unreleased]: ${REPO}/compare/v${version}...HEAD`, `[${version}]: ${since}`];
+  const unreleased = result.findIndex((line) => line.startsWith('[Unreleased]: '));
+  if (unreleased === -1) {
+    while (result.length > 0 && result[result.length - 1] === '') result.pop();
+    result.push('', ...links, '');
+  } else {
+    result.splice(unreleased, 1, ...links);
   }
-  return { bump: positionals[0], dryRun: flags.includes("--dry-run") };
+  return { text: result.join('\n'), notes: `${entries.join('\n')}\n` };
 }
 
-function compareVersions(a, b) {
-  const left = a.split(".").map(Number);
-  const right = b.split(".").map(Number);
-  for (let index = 0; index < 3; index += 1) {
-    if (left[index] !== right[index]) {
-      return left[index] - right[index];
-    }
-  }
-  return 0;
+function bumpFile(file, from, to) {
+  const text = readText(file);
+  const current = VERSION_FILES[file](from);
+  const count = text.split(current).length - 1;
+  if (count !== 1) throw new Error(`${file} should contain ${current} once, and has it ${count} times.`);
+  return text.replace(current, VERSION_FILES[file](to));
 }
 
-export function bumpVersion(current, bump) {
-  const match = PLAIN_VERSION.exec(current);
-  if (!match) {
-    throw new Error(`Current version "${current}" is not a plain MAJOR.MINOR.PATCH version.`);
-  }
-  const [major, minor, patch] = match.slice(1).map(Number);
-  switch (bump) {
-    case "major":
-      return `${major + 1}.0.0`;
-    case "minor":
-      return `${major}.${minor + 1}.0`;
-    case "patch":
-      return `${major}.${minor}.${patch + 1}`;
-    default:
-      if (!PLAIN_VERSION.test(bump)) {
-        throw new Error(`Expected patch, minor, major, or MAJOR.MINOR.PATCH without leading zeros, got "${bump}".`);
-      }
-      if (compareVersions(bump, current) <= 0) {
-        throw new Error(`Version ${bump} is not greater than the current version ${current}.`);
-      }
-      return bump;
-  }
-}
-
-export function replaceVersion(json, nextVersion) {
-  const pattern = /^(\s*"version":\s*")([^"]*)(")/m;
-  if (!pattern.test(json)) {
-    throw new Error('No top-level "version" field found.');
-  }
-  return json.replace(pattern, `$1${nextVersion}$3`);
-}
-
-function run(command, args, options = {}) {
-  return execFileSync(command, args, {
-    cwd: repoRoot,
-    encoding: "utf8",
-    stdio: options.inherit ? ["ignore", "inherit", "inherit"] : ["ignore", "pipe", "pipe"]
-  });
-}
-
-function git(...args) {
-  return run("git", args).trim();
-}
-
-function fail(message) {
-  console.error(`Release aborted: ${message}`);
-  process.exit(1);
-}
-
-function runBun(args, options = {}) {
+function absentOnGitHub(tag) {
   try {
-    return run("bun", args, options);
+    run('gh', ['release', 'view', tag, '--json', 'tagName']);
   } catch (error) {
-    const missing = missingBunMessage(error);
-    if (!missing) {
-      throw error;
-    }
-    return fail(missing);
+    if (/release not found/i.test(String(error.stderr))) return;
+    throw new Error(`Couldn't check GitHub for release ${tag}: ${String(error.stderr || error.message).trim()}`);
   }
+  throw new Error(`GitHub already has a release ${tag}.`);
 }
 
-function checkNpm(name, nextVersion) {
-  let published = "";
+function absentOnNpm(name, version) {
+  let printed;
   try {
-    published = run("npm", ["view", `${name}@${nextVersion}`, "version"]).trim();
+    printed = run('npm', ['view', `${name}@${version}`, 'version']).trim();
   } catch (error) {
-    if (!isAbsentNpmVersion(error)) {
-      fail(`could not check npm for ${name}@${nextVersion}: ${error.stderr || error.message}`);
-    }
+    // E404 means the package has never been published.
+    if (/\bE404\b/.test(String(error.stderr))) return;
+    throw new Error(`Couldn't check npm for ${name}@${version}: ${String(error.stderr || error.message).trim()}`);
   }
-  if (published !== "") {
-    fail(`${name}@${nextVersion} is already published on npm.`);
-  }
+  if (printed !== '') throw new Error(`${name}@${version} is already on npm.`);
 }
 
-function preflight(nextVersion, tag, name) {
-  if (git("rev-parse", "--abbrev-ref", "HEAD") !== RELEASE_BRANCH) {
-    fail(`releases are cut from ${RELEASE_BRANCH}.`);
-  }
-  if (git("status", "--porcelain") !== "") {
-    fail("working tree is not clean. Commit or stash your changes first.");
-  }
-  git("fetch", "origin", RELEASE_BRANCH, "--tags");
-  if (git("rev-parse", "HEAD") !== git("rev-parse", `origin/${RELEASE_BRANCH}`)) {
-    fail(`local ${RELEASE_BRANCH} does not match origin/${RELEASE_BRANCH}. Pull or push first.`);
-  }
-  if (unreleasedEntries(fs.readFileSync(path.join(repoRoot, CHANGELOG_FILE), "utf8")).length === 0) {
-    fail(`${CHANGELOG_FILE} has no entries under "## [Unreleased]". Add the user-visible changes first.`);
-  }
-  if (git("tag", "--list", tag) !== "") {
-    fail(`tag ${tag} already exists.`);
-  }
-  try {
-    run("gh", ["auth", "status"]);
-  } catch {
-    fail("gh is not installed or not logged in. Run `gh auth login`.");
-  }
-  try {
-    run("gh", ["release", "view", tag]);
-    fail(`GitHub release ${tag} already exists.`);
-  } catch (error) {
-    if (!isAbsentGitHubRelease(error)) {
-      fail(`could not check GitHub release ${tag}: ${error.stderr || error.message}`);
-    }
-  }
-  checkNpm(name, nextVersion);
+script((argv) => {
+  const dryRun = argv.includes('--dry-run');
+  const rest = argv.filter((arg) => arg !== '--dry-run');
+  if (rest.length !== 1 || rest[0].startsWith('-')) throw new Error(USAGE);
 
-  for (const script of PREFLIGHT) {
-    console.log(`\n> bun run ${script}`);
-    runBun(["run", script], { inherit: true });
-  }
-  console.log(`\nPreflight passed for ${nextVersion}.`);
-}
+  const pkg = readJson('package.json');
+  const version = nextVersion(pkg.version, rest[0]);
+  const tag = `v${version}`;
+  console.log(`Releasing ${pkg.name} ${pkg.version} -> ${version}`);
 
-export function updateVersionFiles(root, nextVersion) {
-  for (const relativePath of VERSION_FILES) {
-    const filePath = path.join(root, relativePath);
-    fs.writeFileSync(filePath, replaceVersion(fs.readFileSync(filePath, "utf8"), nextVersion));
+  const branch = git('branch', '--show-current');
+  if (branch !== BRANCH) throw new Error(`Releases are cut from ${BRANCH}, and this checkout is on ${branch || 'a detached HEAD'}.`);
+  if (git('status', '--porcelain') !== '') throw new Error('The working tree has changes. Commit or stash them first.');
+  git('fetch', '--quiet', 'origin', BRANCH);
+  if (git('rev-parse', 'HEAD') !== git('rev-parse', `origin/${BRANCH}`)) throw new Error(`${BRANCH} and origin/${BRANCH} differ. Pull or push first.`);
+  if (git('tag', '--list', tag) !== '' || git('ls-remote', '--tags', 'origin', `refs/tags/${tag}`) !== '') {
+    throw new Error(`Tag ${tag} already exists.`);
   }
-  const modulePath = path.join(root, VERSION_MODULE);
-  const moduleSource = fs.readFileSync(modulePath, "utf8");
-  const versionPattern = /^(export const VERSION = ")[^"]*(";)/m;
-  if (!versionPattern.test(moduleSource)) {
-    throw new Error(`No VERSION export found in ${VERSION_MODULE}.`);
-  }
-  fs.writeFileSync(modulePath, moduleSource.replace(versionPattern, `$1${nextVersion}$2`));
-  return [...VERSION_FILES, VERSION_MODULE];
-}
+  absentOnGitHub(tag);
+  absentOnNpm(pkg.name, version);
 
-function main(argv) {
-  let bump;
-  let dryRun;
-  try {
-    ({ bump, dryRun } = parseReleaseArgs(argv));
-  } catch (error) {
-    console.error(error.message);
-    process.exit(1);
+  const changelog = promote(readText(CHANGELOG), pkg.version, version, new Date().toISOString().slice(0, 10));
+  const bumped = Object.keys(VERSION_FILES).map((file) => [file, bumpFile(file, pkg.version, version)]);
+
+  for (const check of CHECKS) {
+    console.log(`\n$ bun run ${check}`);
+    run('bun', ['run', check], { show: true });
   }
 
-  const packageJson = JSON.parse(fs.readFileSync(path.join(repoRoot, "package.json"), "utf8"));
-  let nextVersion;
-  try {
-    nextVersion = bumpVersion(packageJson.version, bump);
-  } catch (error) {
-    fail(error.message);
-  }
-  const tag = `v${nextVersion}`;
-  console.log(`Releasing ${packageJson.version} -> ${nextVersion} (${tag})`);
-
-  preflight(nextVersion, tag, packageJson.name);
   if (dryRun) {
-    console.log(`Dry run: would bump ${[...VERSION_FILES, VERSION_MODULE].join(", ")}, move the ${CHANGELOG_FILE} Unreleased entries under ${nextVersion}, rebuild the fallback, commit, tag ${tag}, push, and create the GitHub release. The tag push publishes ${packageJson.name}@${nextVersion} to npm from GitHub Actions.`);
+    console.log(`\nDry run: every check passed. ${tag} would be released with these notes:\n\n${changelog.notes}`);
     return;
   }
 
-  // The changelog goes first: it is the one rewrite that can refuse.
-  const date = new Date().toISOString().slice(0, 10);
-  const changelogPath = path.join(repoRoot, CHANGELOG_FILE);
-  fs.writeFileSync(changelogPath, promoteUnreleased(fs.readFileSync(changelogPath, "utf8"), packageJson.version, nextVersion, date));
-  const updated = updateVersionFiles(repoRoot, nextVersion);
-  // The bundled fallback inlines src/version.js, so rebuild it with the bump.
-  runBun(["run", "build:fallback"], { inherit: true });
-  runBun(["run", "check:metadata"], { inherit: true });
+  writeFileSync(join(ROOT, CHANGELOG), changelog.text);
+  for (const [file, text] of bumped) writeFileSync(join(ROOT, file), text);
+  // The bundle inlines src/version.js, so every release rebuilds it.
+  run('bun', ['run', 'build:fallback'], { show: true });
+  run('bun', ['run', 'check:metadata'], { show: true });
 
-  git("add", ...updated, CHANGELOG_FILE, FALLBACK_FILE);
-  git("commit", "-m", `chore: release ${nextVersion}`);
-  git("tag", "-a", tag, "-m", tag);
-  git(...releasePushArgs(tag));
-  console.log(`Pushed ${RELEASE_BRANCH} and ${tag}`);
+  git('add', CHANGELOG, BUNDLE, ...Object.keys(VERSION_FILES));
+  git('commit', '--quiet', '-m', `chore: release ${version}`);
+  git('tag', '--annotate', tag, '--message', tag);
+  // With --atomic the remote takes both refs or neither, so a tag can never
+  // be published for a commit that main didn't get.
+  git('push', '--atomic', '--quiet', 'origin', BRANCH, tag);
+  console.log(`\nPushed ${BRANCH} and ${tag}.`);
 
-  const releaseUrl = run("gh", ["release", "create", tag, "--title", tag, "--generate-notes", "--verify-tag"]).trim();
-  console.log(`Created GitHub release: ${releaseUrl}`);
-  console.log(`The Publish workflow is publishing ${packageJson.name}@${nextVersion} to npm: https://github.com/heyzainali/half-fixed/actions/workflows/publish.yml`);
-}
-
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  main(process.argv.slice(2));
-}
+  const url = run('gh', ['release', 'create', tag, '--verify-tag', '--title', tag, '--notes-file', '-'], { input: changelog.notes }).trim();
+  console.log(`GitHub release: ${url}`);
+  console.log(`npm publish: ${REPO}/actions/workflows/publish.yml`);
+});

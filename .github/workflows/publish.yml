@@ -72,7 +72,7 @@ jobs:
           node skills/half-fixed/scripts/half-fixed.js --help > /dev/null
 
       - name: Install and run the packed tarball
-        run: node scripts/check-package.js
+        run: node scripts/smoke-pack.js
 
       - name: Publish to npm
         run: |

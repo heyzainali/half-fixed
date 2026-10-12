@@ -19,17 +19,17 @@
     "LICENSE"
   ],
   "scripts": {
-    "build:fallback": "node scripts/build-fallback.js",
+    "build:fallback": "node scripts/fallback.js build",
     "build:demo": "node scripts/render-demo.js",
     "build:art": "node scripts/render-readme-art.js",
-    "check:metadata": "node scripts/check-metadata.js",
-    "check:fallback": "node scripts/check-fallback.js",
-    "check:package": "node scripts/check-package.js",
+    "check:metadata": "node scripts/metadata.js",
+    "check:fallback": "node scripts/fallback.js check",
+    "check:package": "node scripts/smoke-pack.js",
     "check:node-help": "node skills/half-fixed/scripts/half-fixed.js --help",
     "release": "node scripts/release.js",
     "half-fixed": "bun run ./bin/half-fixed.js",
     "test": "bun test ./test/*.test.js",
-    "test:coverage": "bun test ./test/*.test.js --coverage --coverage-reporter=lcov --coverage-dir=coverage && node scripts/check-coverage.js coverage/lcov.info src && bun run check:fallback"
+    "test:coverage": "bun test ./test/*.test.js --coverage --coverage-reporter=lcov --coverage-dir=coverage && node scripts/coverage.js coverage/lcov.info src && bun run check:fallback"
   },
   "keywords": [
     "agent-skills",

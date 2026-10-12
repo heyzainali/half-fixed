@@ -91,4 +91,4 @@ jobs:
       # way npm users get it, so a file missing from package.json "files"
       # cannot ship a half-fixed bin that crashes on start.
       - name: Install and run the packed tarball
-        run: node scripts/check-package.js
+        run: node scripts/smoke-pack.js

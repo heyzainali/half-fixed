@@ -22,7 +22,7 @@ There are no runtime dependencies, and there must not be any. The scanner ships 
 - `bin/half-fixed.js` is the npm bin.
 - `skills/half-fixed/scripts/half-fixed.js` is a single-file bundle of the CLI, built with `bun build --target=node` and committed. Copied skill installs run it with Node. Never edit it by hand.
 - `skills/*/SKILL.md` are the agent instructions. Long material lives in `references/`.
-- `scripts/` holds the build, check, and release tooling.
+- `scripts/` holds the build, check, and release tooling, which runs on plain Node. Shared helpers live in `scripts/lib.js`.
 
 ## Change detection
 
@@ -49,7 +49,7 @@ bun run check:metadata
 bun run test
 bun run test:coverage
 node skills/half-fixed/scripts/half-fixed.js --help
-node scripts/check-package.js
+bun run check:package
 ```
 
 `test:coverage` requires every line and function in `src/` to be covered, and also runs `check:fallback`. CI also runs the CLI and the bundled fallback on Node 18, 20, and 22.
@@ -67,4 +67,4 @@ Add an entry under `## [Unreleased]` in [`CHANGELOG.md`](CHANGELOG.md) for any c
 
 ## Releasing
 
-`bun run release <patch|minor|major|X.Y.Z>` (add `--dry-run` first) checks the branch, the changelog, npm, and GitHub, runs the checks, bumps every version file, moves the Unreleased entries under the new version, rebuilds the fallback, commits, tags, pushes, and creates the GitHub release. The tag push runs `.github/workflows/publish.yml`, which publishes to npm through trusted publishing. Configure the package's trusted publisher on npmjs.com before the first release.
+`bun run release <patch|minor|major|X.Y.Z>` (add `--dry-run` first) checks the branch, the changelog, npm, and GitHub, runs the checks, bumps every version file, moves the Unreleased entries under the new version, rebuilds the fallback, commits, tags, pushes, and creates the GitHub release with the changelog entries as its notes. The tag push runs `.github/workflows/publish.yml`, which publishes to npm through trusted publishing. Configure the package's trusted publisher on npmjs.com before the first release.
