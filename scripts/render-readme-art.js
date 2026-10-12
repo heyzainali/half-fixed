@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-// Renders the README hero, the stats strip, and the "How it works" diagram in light and dark
+// Renders the README hero, the stats strip, the "why" report, and the "How it works" diagram in light and dark
 // variants under assets/readme/. The README picks one with <picture> and
 // prefers-color-scheme. Both depict the real prism-php/prism finding that
 // became prism-php/prism#1038.
+import { createHash } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -60,6 +61,77 @@ function stats(t) {
   ${items}
 </svg>
 `;
+}
+
+export const REASONS = [
+  {
+    title: "learns from your own fixes",
+    why: "every fix in your history is a test case for the code next to it",
+    proof: ["proof", "Prism's 9447c71 fixed 2 of 10 tool maps; half-fixed found the 4 that kept the bug"]
+  },
+  {
+    title: "finds real bugs",
+    why: "its findings became pull requests in two well-known projects",
+    proof: ["proof", "prism-php/prism#1038, BerriAI/litellm#44925, BerriAI/litellm#44936"]
+  },
+  {
+    title: "fast and offline",
+    why: "runs git and nothing else: no model, no network, no telemetry",
+    proof: ["proof", "5,000 LiteLLM commits in 69 s"]
+  },
+  {
+    title: "evidence, not autofix",
+    why: "your agent checks each finding against the original fix before it touches code",
+    proof: ["proof", "66 LiteLLM findings checked: 13 real gaps, 52 deliberate or handled, 1 unsure"]
+  },
+  {
+    title: "works with your agent",
+    why: "Claude Code and Codex plugins, Agent Skills for any agent, and a standalone CLI",
+    proof: ["try", "npx skills add heyzainali/half-fixed"]
+  },
+  {
+    title: "catches it in review",
+    why: "--base flags a branch that fixes two siblings and forgets the third",
+    proof: ["proof", "flagged DeepSeek and OpenAI on the branch behind prism-php/prism#1038"]
+  }
+];
+
+const reasonId = (title) => `hf-${createHash("sha1").update(title).digest("hex").slice(0, 7)}`;
+
+function report(t) {
+  const width = 876;
+  const line = 20;
+  const pad = 22;
+  const lines = [
+    `<tspan font-weight="700" fill="${t.old}">${REASONS.length} reasons found</tspan><tspan fill="${t.muted}"> (3 upstream bugs, 0 dependencies, at HEAD)</tspan>`,
+    "",
+    `<tspan font-weight="700">half-fixed/*</tspan>`
+  ];
+  for (const reason of REASONS) {
+    lines.push(
+      `  <tspan font-weight="700">${reasonId(reason.title)}</tspan>  <tspan font-weight="700" fill="${t.old}">high</tspan>  <tspan font-weight="700">${escapeXml(reason.title)}</tspan>`,
+      `    <tspan fill="${t.muted}">why    </tspan>${escapeXml(reason.why)}`,
+      `    <tspan fill="${t.muted}">${reason.proof[0].padEnd(7)}</tspan><tspan fill="${t.fixed}">${escapeXml(reason.proof[1])}</tspan>`
+    );
+  }
+  lines.push("", `<tspan fill="${t.muted}">Run it on your repository: </tspan><tspan font-weight="700">npx half-fixed scan</tspan>`);
+  const height = pad * 2 + lines.length * line;
+  const text = lines
+    .map((content, i) => `<text x="${pad}" y="${pad + (i + 0.75) * line}" xml:space="preserve">${content}</text>`)
+    .join("\n  ");
+  const summary = REASONS.map((r) => `${r.title}: ${r.why} (${r.proof[0]}: ${r.proof[1]})`).join(". ");
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="title desc">
+  <title id="title">Why half-fixed, as a scan report</title>
+  <desc id="desc">${escapeXml(summary)}.</desc>
+  <style>text{font-family:${MONO.replace(/"/g, "'")};font-size:13px;fill:${t.fg};white-space:pre;font-variant-ligatures:none}</style>
+  <rect x="0.5" y="0.5" width="${width - 1}" height="${height - 1}" rx="10" fill="${t.surface}" stroke="${t.faint}"/>
+  ${text}
+</svg>
+`;
+}
+
+function escapeXml(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 function diagram(t) {
@@ -140,5 +212,6 @@ for (const [name, theme] of Object.entries(THEMES)) {
   writeFileSync(path.join(OUT_DIR, `hero-${name}.svg`), hero(theme));
   writeFileSync(path.join(OUT_DIR, `how-it-works-${name}.svg`), diagram(theme));
   writeFileSync(path.join(OUT_DIR, `stats-${name}.svg`), stats(theme));
+  writeFileSync(path.join(OUT_DIR, `report-${name}.svg`), report(theme));
 }
-console.log(`Wrote the hero, stats strip, and diagram to ${path.relative(repoRoot, OUT_DIR)}.`);
+console.log(`Wrote the hero, stats strip, report, and diagram to ${path.relative(repoRoot, OUT_DIR)}.`);

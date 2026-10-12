@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="876" height="504" viewBox="0 0 876 504" role="img" aria-labelledby="title desc">
+  <title id="title">Why half-fixed, as a scan report</title>
+  <desc id="desc">learns from your own fixes: every fix in your history is a test case for the code next to it (proof: Prism's 9447c71 fixed 2 of 10 tool maps; half-fixed found the 4 that kept the bug). finds real bugs: its findings became pull requests in two well-known projects (proof: prism-php/prism#1038, BerriAI/litellm#44925, BerriAI/litellm#44936). fast and offline: runs git and nothing else: no model, no network, no telemetry (proof: 5,000 LiteLLM commits in 69 s). evidence, not autofix: your agent checks each finding against the original fix before it touches code (proof: 66 LiteLLM findings checked: 13 real gaps, 52 deliberate or handled, 1 unsure). works with your agent: Claude Code and Codex plugins, Agent Skills for any agent, and a standalone CLI (try: npx skills add heyzainali/half-fixed). catches it in review: --base flags a branch that fixes two siblings and forgets the third (proof: flagged DeepSeek and OpenAI on the branch behind prism-php/prism#1038).</desc>
+  <style>text{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace;font-size:13px;fill:#1f2328;white-space:pre;font-variant-ligatures:none}</style>
+  <rect x="0.5" y="0.5" width="875" height="503" rx="10" fill="#f6f8fa" stroke="#d1d9e0"/>
+  <text x="22" y="37" xml:space="preserve"><tspan font-weight="700" fill="#bc4c00">6 reasons found</tspan><tspan fill="#59636e"> (3 upstream bugs, 0 dependencies, at HEAD)</tspan></text>
+  <text x="22" y="57" xml:space="preserve"></text>
+  <text x="22" y="77" xml:space="preserve"><tspan font-weight="700">half-fixed/*</tspan></text>
+  <text x="22" y="97" xml:space="preserve">  <tspan font-weight="700">hf-801f2fa</tspan>  <tspan font-weight="700" fill="#bc4c00">high</tspan>  <tspan font-weight="700">learns from your own fixes</tspan></text>
+  <text x="22" y="117" xml:space="preserve">    <tspan fill="#59636e">why    </tspan>every fix in your history is a test case for the code next to it</text>
+  <text x="22" y="137" xml:space="preserve">    <tspan fill="#59636e">proof  </tspan><tspan fill="#1a7f37">Prism's 9447c71 fixed 2 of 10 tool maps; half-fixed found the 4 that kept the bug</tspan></text>
+  <text x="22" y="157" xml:space="preserve">  <tspan font-weight="700">hf-3950d04</tspan>  <tspan font-weight="700" fill="#bc4c00">high</tspan>  <tspan font-weight="700">finds real bugs</tspan></text>
+  <text x="22" y="177" xml:space="preserve">    <tspan fill="#59636e">why    </tspan>its findings became pull requests in two well-known projects</text>
+  <text x="22" y="197" xml:space="preserve">    <tspan fill="#59636e">proof  </tspan><tspan fill="#1a7f37">prism-php/prism#1038, BerriAI/litellm#44925, BerriAI/litellm#44936</tspan></text>
+  <text x="22" y="217" xml:space="preserve">  <tspan font-weight="700">hf-579f00c</tspan>  <tspan font-weight="700" fill="#bc4c00">high</tspan>  <tspan font-weight="700">fast and offline</tspan></text>
+  <text x="22" y="237" xml:space="preserve">    <tspan fill="#59636e">why    </tspan>runs git and nothing else: no model, no network, no telemetry</text>
+  <text x="22" y="257" xml:space="preserve">    <tspan fill="#59636e">proof  </tspan><tspan fill="#1a7f37">5,000 LiteLLM commits in 69 s</tspan></text>
+  <text x="22" y="277" xml:space="preserve">  <tspan font-weight="700">hf-9a731b6</tspan>  <tspan font-weight="700" fill="#bc4c00">high</tspan>  <tspan font-weight="700">evidence, not autofix</tspan></text>
+  <text x="22" y="297" xml:space="preserve">    <tspan fill="#59636e">why    </tspan>your agent checks each finding against the original fix before it touches code</text>
+  <text x="22" y="317" xml:space="preserve">    <tspan fill="#59636e">proof  </tspan><tspan fill="#1a7f37">66 LiteLLM findings checked: 13 real gaps, 52 deliberate or handled, 1 unsure</tspan></text>
+  <text x="22" y="337" xml:space="preserve">  <tspan font-weight="700">hf-da3fde8</tspan>  <tspan font-weight="700" fill="#bc4c00">high</tspan>  <tspan font-weight="700">works with your agent</tspan></text>
+  <text x="22" y="357" xml:space="preserve">    <tspan fill="#59636e">why    </tspan>Claude Code and Codex plugins, Agent Skills for any agent, and a standalone CLI</text>
+  <text x="22" y="377" xml:space="preserve">    <tspan fill="#59636e">try    </tspan><tspan fill="#1a7f37">npx skills add heyzainali/half-fixed</tspan></text>
+  <text x="22" y="397" xml:space="preserve">  <tspan font-weight="700">hf-2eae021</tspan>  <tspan font-weight="700" fill="#bc4c00">high</tspan>  <tspan font-weight="700">catches it in review</tspan></text>
+  <text x="22" y="417" xml:space="preserve">    <tspan fill="#59636e">why    </tspan>--base flags a branch that fixes two siblings and forgets the third</text>
+  <text x="22" y="437" xml:space="preserve">    <tspan fill="#59636e">proof  </tspan><tspan fill="#1a7f37">flagged DeepSeek and OpenAI on the branch behind prism-php/prism#1038</tspan></text>
+  <text x="22" y="457" xml:space="preserve"></text>
+  <text x="22" y="477" xml:space="preserve"><tspan fill="#59636e">Run it on your repository: </tspan><tspan font-weight="700">npx half-fixed scan</tspan></text>
+</svg>

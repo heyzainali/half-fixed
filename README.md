@@ -40,42 +40,12 @@ Most codebases have siblings: provider adapters, database drivers, cache stores,
 
 half-fixed reads your git history and finds those gaps. It's a fast, offline scanner and two Agent Skills: one checks which findings are real bugs and fixes them with tests, and the other writes the pull request the way the project's maintainers expect.
 
-<table>
-  <tr>
-    <td width="33%" valign="top">
-      <p><img src="assets/readme/icon-history.svg" width="40" height="40" alt=""></p>
-      <p><b>Learns from your own fixes</b><br>
-      Every fix in your history is a test case. half-fixed checks whether each one reached all the code that needed it.</p>
-    </td>
-    <td width="33%" valign="top">
-      <p><img src="assets/readme/icon-bug.svg" width="40" height="40" alt=""></p>
-      <p><b>Finds real bugs</b><br>
-      Its findings became fixes in Prism and LiteLLM. In LiteLLM, one high-confidence finding in five was a real gap.</p>
-    </td>
-    <td width="33%" valign="top">
-      <p><img src="assets/readme/icon-fast.svg" width="40" height="40" alt=""></p>
-      <p><b>Fast and offline</b><br>
-      5,000 commits in about a minute. It runs <code>git</code> and nothing else: no model, no network, no telemetry.</p>
-    </td>
-  </tr>
-  <tr>
-    <td width="33%" valign="top">
-      <p><img src="assets/readme/icon-evidence.svg" width="40" height="40" alt=""></p>
-      <p><b>Evidence, not autofix</b><br>
-      The skill has your agent check each finding against the original fix and back every verdict before it touches code.</p>
-    </td>
-    <td width="33%" valign="top">
-      <p><img src="assets/readme/icon-agents.svg" width="40" height="40" alt=""></p>
-      <p><b>Works with your agent</b><br>
-      Plugins for Claude Code and Codex, skills for any agent that reads <code>SKILL.md</code>, and a standalone CLI.</p>
-    </td>
-    <td width="33%" valign="top">
-      <p><img src="assets/readme/icon-pull-request.svg" width="40" height="40" alt=""></p>
-      <p><b>Catches it in review</b><br>
-      <code>--base</code> flags a branch that fixes two siblings and forgets the third, before a reviewer has to.</p>
-    </td>
-  </tr>
-</table>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/readme/report-dark.svg">
+    <img src="assets/readme/report-light.svg" width="876" alt="Why half-fixed, as a scan report. Learns from your own fixes: every fix in your history is a test case for the code next to it; Prism's 9447c71 fixed 2 of 10 tool maps and half-fixed found the 4 that kept the bug. Finds real bugs: prism-php/prism#1038, BerriAI/litellm#44925, BerriAI/litellm#44936. Fast and offline: runs git and nothing else, 5,000 LiteLLM commits in 69 seconds. Evidence, not autofix: your agent checks each finding before it touches code; of 66 LiteLLM findings, 13 were real gaps, 52 deliberate or handled, 1 unsure. Works with your agent: Claude Code and Codex plugins, Agent Skills, and a standalone CLI. Catches it in review: --base flags a branch that fixes two siblings and forgets the third.">
+  </picture>
+</p>
 
 ## Quick start
 
