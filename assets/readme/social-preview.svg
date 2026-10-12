@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+  <rect width="1280" height="640" fill="#0d1117"/>
+  <text x="640" y="170" text-anchor="middle" font-family='ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace' font-size="120" font-weight="700" fill="#e6edf3">half<tspan fill="#f0883e">-</tspan>fixed</text>
+  <rect x="436" y="205" width="30" height="30" rx="6" fill="#3fb950"/>
+  <rect x="478" y="205" width="30" height="30" rx="6" fill="#3fb950"/>
+  <rect x="521.5" y="206.5" width="27" height="27" rx="5" fill="none" stroke="#f0883e" stroke-width="3"/>
+  <rect x="563.5" y="206.5" width="27" height="27" rx="5" fill="none" stroke="#f0883e" stroke-width="3"/>
+  <rect x="605.5" y="206.5" width="27" height="27" rx="5" fill="none" stroke="#f0883e" stroke-width="3"/>
+  <rect x="647.5" y="206.5" width="27" height="27" rx="5" fill="none" stroke="#f0883e" stroke-width="3"/>
+  <rect x="689.5" y="206.5" width="27" height="27" rx="5" fill="none" stroke="#3d444d" stroke-width="3"/>
+  <rect x="731.5" y="206.5" width="27" height="27" rx="5" fill="none" stroke="#3d444d" stroke-width="3"/>
+  <rect x="773.5" y="206.5" width="27" height="27" rx="5" fill="none" stroke="#3d444d" stroke-width="3"/>
+  <rect x="815.5" y="206.5" width="27" height="27" rx="5" fill="none" stroke="#3d444d" stroke-width="3"/>
+  <text x="640" y="272" text-anchor="middle" font-family='ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace' font-size="22" fill="#9198a1"><tspan fill="#3fb950">fixed in 2 of 10</tspan>, <tspan fill="#f0883e">still old in 4</tspan></text>
+  <text x="640" y="360" text-anchor="middle" font-family='-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif' font-size="46" font-weight="700" fill="#e6edf3">Your bug was fixed. Just not everywhere.</text>
+  <text x="640" y="408" text-anchor="middle" font-family='-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif' font-size="25" fill="#9198a1">Finds fixes that reached some sibling implementations but not the others.</text>
+  <rect x="79.60000000000002" y="466" width="1120.8" height="58" rx="12" fill="#151b23" stroke="#3d444d" stroke-width="1.5"/>
+  <rect x="103.60000000000002" y="488" width="14" height="14" rx="3" fill="#3fb950"/><text x="127.60000000000002" y="501" font-family='ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace' font-size="18" fill="#e6edf3">3 upstream bugs found</text>
+  <rect x="388.4" y="488" width="14" height="14" rx="3" fill="#3fb950"/><text x="412.4" y="501" font-family='ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace' font-size="18" fill="#e6edf3">5,000 commits in 69 s</text>
+  <rect x="673.1999999999999" y="488" width="14" height="14" rx="3" fill="#3fb950"/><text x="697.1999999999999" y="501" font-family='ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace' font-size="18" fill="#e6edf3">0 dependencies</text>
+  <rect x="882.3999999999999" y="488" width="14" height="14" rx="3" fill="#3fb950"/><text x="906.3999999999999" y="501" font-family='ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace' font-size="18" fill="#e6edf3">Claude Code, Codex &amp; more</text>
+  <text x="640" y="590" text-anchor="middle" font-family='ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace' font-size="19" fill="#9198a1">github.com/heyzainali/half-fixed</text>
+</svg>

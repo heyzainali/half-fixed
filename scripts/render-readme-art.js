@@ -3,6 +3,12 @@
 // variants under assets/readme/. The README picks one with <picture> and
 // prefers-color-scheme. Both depict the real prism-php/prism finding that
 // became prism-php/prism#1038.
+//
+// It also writes social-preview.svg, the card for Settings > General > Social
+// preview. GitHub wants a PNG, so convert it at 1280x640 after a change:
+//
+//   chrome --headless=new --hide-scrollbars --window-size=1280,640 \
+//     --screenshot=assets/readme/social-preview.png assets/readme/social-preview.svg
 import { createHash } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -134,6 +140,48 @@ function escapeXml(s) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+const SOCIAL_STATS = ["3 upstream bugs found", "5,000 commits in 69 s", "0 dependencies", "Claude Code, Codex & more"];
+
+/** The 1280x640 card GitHub shows when the repository link is shared. */
+function social(t) {
+  const width = 1280;
+  const height = 640;
+  const size = 30;
+  const gap = 12;
+  const rowLeft = (width - (10 * size + 9 * gap)) / 2;
+  const squares = Array.from({ length: 10 }, (_, i) => {
+    const x = rowLeft + i * (size + gap);
+    if (i < 2) return `<rect x="${x}" y="205" width="${size}" height="${size}" rx="6" fill="${t.fixed}"/>`;
+    const stroke = i < 6 ? t.old : t.faint;
+    return `<rect x="${x + 1.5}" y="206.5" width="${size - 3}" height="${size - 3}" rx="5" fill="none" stroke="${stroke}" stroke-width="3"/>`;
+  }).join("\n  ");
+
+  const charWidth = 18 * 0.6;
+  const itemWidths = SOCIAL_STATS.map((label) => 14 + 10 + label.length * charWidth);
+  const stripGap = 34;
+  const stripWidth = itemWidths.reduce((a, b) => a + b, 0) + stripGap * (SOCIAL_STATS.length - 1) + 48;
+  const stripLeft = (width - stripWidth) / 2;
+  let x = stripLeft + 24;
+  const stats = SOCIAL_STATS.map((label, i) => {
+    const item = `<rect x="${x}" y="488" width="14" height="14" rx="3" fill="${t.fixed}"/><text x="${x + 24}" y="501" font-family='${MONO}' font-size="18" fill="${t.fg}">${escapeXml(label)}</text>`;
+    x += itemWidths[i] + stripGap;
+    return item;
+  }).join("\n  ");
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+  <rect width="${width}" height="${height}" fill="#0d1117"/>
+  <text x="${width / 2}" y="170" text-anchor="middle" font-family='${MONO}' font-size="120" font-weight="700" fill="${t.fg}">half<tspan fill="${t.old}">-</tspan>fixed</text>
+  ${squares}
+  <text x="${width / 2}" y="272" text-anchor="middle" font-family='${MONO}' font-size="22" fill="${t.muted}"><tspan fill="${t.fixed}">fixed in 2 of 10</tspan>, <tspan fill="${t.old}">still old in 4</tspan></text>
+  <text x="${width / 2}" y="360" text-anchor="middle" font-family='${SANS}' font-size="46" font-weight="700" fill="${t.fg}">Your bug was fixed. Just not everywhere.</text>
+  <text x="${width / 2}" y="408" text-anchor="middle" font-family='${SANS}' font-size="25" fill="${t.muted}">Finds fixes that reached some sibling implementations but not the others.</text>
+  <rect x="${stripLeft}" y="466" width="${stripWidth}" height="58" rx="12" fill="${t.surface}" stroke="${t.faint}" stroke-width="1.5"/>
+  ${stats}
+  <text x="${width / 2}" y="590" text-anchor="middle" font-family='${MONO}' font-size="19" fill="${t.muted}">github.com/heyzainali/half-fixed</text>
+</svg>
+`;
+}
+
 function diagram(t) {
   const width = 880;
   const height = 320;
@@ -208,6 +256,7 @@ function diagram(t) {
 }
 
 mkdirSync(OUT_DIR, { recursive: true });
+writeFileSync(path.join(OUT_DIR, "social-preview.svg"), social(THEMES.dark));
 for (const [name, theme] of Object.entries(THEMES)) {
   writeFileSync(path.join(OUT_DIR, `hero-${name}.svg`), hero(theme));
   writeFileSync(path.join(OUT_DIR, `how-it-works-${name}.svg`), diagram(theme));
