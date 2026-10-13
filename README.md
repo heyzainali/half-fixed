@@ -30,7 +30,10 @@ then helps your agent check them and finish the job.</p>
 
 <br>
 
-<img src="assets/readme/demo.svg" width="876" alt="A terminal running npx half-fixed scan --group ToolMap on prism-php/prism. It reports hf-5505660: a fix made to the DeepSeek and OpenRouter tool maps in commit 9447c71 that the Groq, Mistral, xAI and Z tool maps never got. The last line notes that the gap is fixed in prism-php/prism#1038.">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/readme/demo-dark.gif">
+  <img src="assets/readme/demo-light.gif" width="920" alt="A terminal running npx half-fixed scan --group ToolMap on prism-php/prism. It reports hf-5505660: a fix made to the DeepSeek and OpenRouter tool maps in commit 9447c71 that the Groq, Mistral, xAI and Z tool maps never got. The finding was fixed in prism-php/prism#1038.">
+</picture>
 
 </div>
 
@@ -99,7 +102,7 @@ Prefer a project install unless I asked for a global one. When you're done, tell
 | [BerriAI/litellm](https://github.com/BerriAI/litellm) | `disable_custom_api_keys` started honouring `config.yaml` ([#42437](https://github.com/BerriAI/litellm/pull/42437)) | `scope_user_search_to_org` still ignored `config.yaml`, so any logged-in user could list every user while the settings page said they couldn't | [#44925](https://github.com/BerriAI/litellm/pull/44925) |
 | [BerriAI/litellm](https://github.com/BerriAI/litellm) | Azure's passthrough started reading the value of `stream` ([`df6fb9e`](https://github.com/BerriAI/litellm/commit/df6fb9e5d95e97b7b207cd278d107e82b134fe45)) | vLLM's passthrough still only checked that the key existed, so `"stream": false` on the `/vllm` route crashed with a 500 | [#44936](https://github.com/BerriAI/litellm/pull/44936) |
 
-Each one started as a single finding, like `hf-5505660` in the demo above. Found one yourself? Open a pull request that adds it to this table.
+Each one started as a single finding, like `hf-5505660` in the demo above. Found a half-fixed bug with it? Open a pull request that adds it to this table, and leave a ⭐ so others can find the tool.
 
 ## How it works
 
