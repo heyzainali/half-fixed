@@ -14,7 +14,7 @@ export const readText = (file) => readFileSync(join(ROOT, file), 'utf8');
 export const readJson = (file) => JSON.parse(readText(file));
 
 const WHERE_TO_GET = {
-  bun: 'Install Bun from https://bun.sh.',
+  bun: 'Install Bun first. CONTRIBUTING.md has the version this project uses.',
   gh: 'Install the GitHub CLI from https://cli.github.com.',
   npm: 'npm ships with Node.js.',
 };
@@ -56,18 +56,17 @@ export function bunPin(packageManager = readJson('package.json').packageManager)
 export function requirePinnedBun() {
   const pin = bunPin();
   if (!pin) throw new Error('package.json "packageManager" must pin an exact Bun version, such as "bun@1.4.2".');
-  const install = `curl -fsSL https://bun.sh/install | bash -s "bun-v${pin}"`;
   let local;
   try {
     local = run('bun', ['--version']).trim();
   } catch (error) {
-    throw new Error(`${error.message}\nThis project builds with Bun ${pin}: ${install}`);
+    throw new Error(`${error.message}\nThis project builds with Bun ${pin}.`);
   }
   if (local !== pin) {
     throw new Error(
       [
         `This project builds with Bun ${pin}, and this machine has Bun ${local}.`,
-        `Install the pinned version with: ${install}`,
+        `Install Bun ${pin} to build it.`,
         'To move the project to another Bun instead, change the version in package.json "packageManager",',
         '.github/workflows/ci.yml, and CONTRIBUTING.md together, then run bun run build:fallback.',
       ].join('\n'),
