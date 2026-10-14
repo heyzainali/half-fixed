@@ -13,7 +13,13 @@ Agent skills that find bug fixes which reached some sibling implementations but 
 
 - `skills/half-fixed/scripts/half-fixed.js` is the scanner: one readable file with no dependencies, run with Node.js 18 or newer. It runs only `git`, reads history and files without running any of the repository's code, and makes no network calls.
 - The skills wait for your go-ahead before pushing, opening a pull request, or commenting, and before running a command that executes a project's own code, such as its install, build, or tests.
-- Nothing is collected or sent anywhere. Files change only when you ask the agent to fix a finding: it edits that repository's code and tests, and may record deliberate differences in an optional `.half-fixed.json` in a repository you maintain. See [PRIVACY.md](https://github.com/heyzainali/half-fixed/blob/main/PRIVACY.md).
+- half-fixed collects nothing and stores nothing. Files change only when you ask the agent to fix a finding: it edits that repository's code and tests, and may record deliberate differences in an optional `.half-fixed.json` in a repository you maintain.
+
+## Services it uses
+
+- **GitHub**, through your own `gh` CLI and git remotes, under your account. To match a project's conventions and avoid duplicates, the skills read that project's public pull requests and issues, which sends search keywords to GitHub. With your go-ahead, they push a branch, open a pull request, or comment.
+
+Nothing else is contacted. See [PRIVACY.md](https://github.com/heyzainali/half-fixed/blob/main/PRIVACY.md).
 
 ## Requirements
 
