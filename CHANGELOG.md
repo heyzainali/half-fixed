@@ -6,6 +6,14 @@ Add an entry under `## [Unreleased]` in the same pull request as any change a us
 
 ## [Unreleased]
 
+### Changed
+
+- The Claude Code and Codex plugin now lives in `plugins/half-fixed/`, so installing it copies only the skills, the scanner they run, and the plugin's own README and license, not the whole repository. The marketplace commands are unchanged, and `skills/` at the root still points at the skills.
+
+### Removed
+
+- The npm package no longer includes the skills. It is the `half-fixed` CLI only. Install the skills through the Claude Code or Codex marketplace, or `npx skills add heyzainali/half-fixed`.
+
 ## [0.1.2] - 2026-10-12
 
 ### Added

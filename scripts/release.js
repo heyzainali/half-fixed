@@ -13,7 +13,7 @@
 // --dry-run stops once the checks pass.
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { BUNDLE, ROOT, readJson, readText, run, script } from './lib.js';
+import { BUNDLE, PLUGIN, ROOT, readJson, readText, run, script } from './lib.js';
 
 const BRANCH = 'main';
 const REPO = 'https://github.com/heyzainali/half-fixed';
@@ -24,8 +24,8 @@ const CHECKS = ['check:metadata', 'test:coverage', 'check:node-help', 'check:pac
 // Each file holds the version exactly once, written like this.
 const VERSION_FILES = {
   'package.json': (version) => `"version": "${version}"`,
-  '.claude-plugin/plugin.json': (version) => `"version": "${version}"`,
-  '.codex-plugin/plugin.json': (version) => `"version": "${version}"`,
+  [`${PLUGIN}/.claude-plugin/plugin.json`]: (version) => `"version": "${version}"`,
+  [`${PLUGIN}/.codex-plugin/plugin.json`]: (version) => `"version": "${version}"`,
   'src/version.js': (version) => `export const VERSION = "${version}";`,
 };
 

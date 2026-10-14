@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 // Installs the package the way npm users get it, then runs it. Every other
 // check runs from the git checkout, so none of them would notice a file that
-// is missing from the tarball, or one that shouldn't be in it.
+// is missing from the tarball, or one that shouldn't be in it. The package is
+// the CLI only: the skills ship in the plugin folder, not on npm.
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { BUNDLE, ROOT, readJson, run, script } from './lib.js';
+import { ROOT, readJson, run, script } from './lib.js';
 
-const MUST_SHIP = ['package.json', 'LICENSE', 'README.md', 'bin/half-fixed.js', 'src/cli.js', 'skills/half-fixed/SKILL.md', BUNDLE];
+const MUST_SHIP = ['package.json', 'LICENSE', 'README.md', 'bin/half-fixed.js', 'src/cli.js'];
 
 script(() => {
   const pkg = readJson('package.json');
@@ -31,7 +32,6 @@ script(() => {
     const printed = run(bin, ['--version'], { cwd: app }).trim();
     if (!printed.includes(pkg.version)) throw new Error(`half-fixed --version printed "${printed}", expected ${pkg.version}`);
     run(bin, ['--help'], { cwd: app });
-    run(process.execPath, [join(app, 'node_modules', 'half-fixed', BUNDLE), '--version'], { cwd: app });
     // A real scan of this checkout. Exit 1 only means it found something.
     try {
       run(bin, ['scan', ROOT, '--all'], { cwd: app });

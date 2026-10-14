@@ -7,8 +7,11 @@ import { fileURLToPath } from 'node:url';
 
 export const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-/** The single-file CLI that copied skill installs run with Node. Built, never edited. */
-export const BUNDLE = 'skills/half-fixed/scripts/half-fixed.js';
+/** The plugin folder: what Claude Code and Codex install and the directories list. */
+export const PLUGIN = 'plugins/half-fixed';
+
+/** The single-file CLI that the skill runs with Node. Built, never edited. */
+export const BUNDLE = `${PLUGIN}/skills/half-fixed/scripts/half-fixed.js`;
 
 export const readText = (file) => readFileSync(join(ROOT, file), 'utf8');
 export const readJson = (file) => JSON.parse(readText(file));

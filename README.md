@@ -87,7 +87,7 @@ Work out which agent you are, then use the matching method. If a command fails o
 
 - Claude Code: run `claude plugin marketplace add heyzainali/half-fixed`, then `claude plugin install half-fixed@half-fixed`. If the `claude` CLI isn't available, tell me to type `/plugin marketplace add heyzainali/half-fixed` and then `/plugin install half-fixed@half-fixed` in this session.
 - Codex: run `codex plugin marketplace add heyzainali/half-fixed`, then `codex plugin add half-fixed@half-fixed`.
-- Any other agent that supports SKILL.md: run `npx skills add heyzainali/half-fixed`. If that doesn't work, clone the repository to a temporary directory and copy both folders in its `skills/` directory into your skills directory.
+- Any other agent that supports SKILL.md: run `npx skills add heyzainali/half-fixed`. If that doesn't work, clone the repository to a temporary directory and copy both folders in its `plugins/half-fixed/skills/` directory into your skills directory.
 
 Prefer a project install unless I asked for a global one. When you're done, tell me what you installed, where, and whether I need to restart you.
 ```

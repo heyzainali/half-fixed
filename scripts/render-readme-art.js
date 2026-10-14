@@ -11,10 +11,10 @@
 //     --screenshot=assets/readme/social-preview.png assets/readme/social-preview.svg
 //
 // And assets/logo.svg, the square plugin icon. Plugin directories want a PNG
-// too, so convert it at 512x512 the same way:
+// too, so convert it at 512x512 the same way, into the plugin folder:
 //
 //   chrome --headless=new --hide-scrollbars --window-size=512,512 \
-//     --screenshot=assets/logo.png assets/logo.svg
+//     --screenshot=plugins/half-fixed/assets/logo.png assets/logo.svg
 import { createHash } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";

@@ -79,7 +79,7 @@ jobs:
       - name: Run both CLIs
         run: |
           node bin/half-fixed.js --version
-          node skills/half-fixed/scripts/half-fixed.js --help > /dev/null
+          node plugins/half-fixed/skills/half-fixed/scripts/half-fixed.js --help > /dev/null
 
       - name: Install and run the packed tarball
         run: node scripts/smoke-pack.js

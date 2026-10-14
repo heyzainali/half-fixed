@@ -20,8 +20,9 @@ There are no runtime dependencies, and there must not be any. The scanner ships 
 
 - `src/` holds the scanner: `cli.js` (arguments and output), `scan.js` (the scan, confidence, exemptions), `diff.js` (the `git log -p` parser and change windows), `groups.js` (sibling discovery), `normalize.js`, `git.js`, `config.js`, `report.js`, and `version.js`.
 - `bin/half-fixed.js` is the npm bin.
-- `skills/half-fixed/scripts/half-fixed.js` is a single-file bundle of the CLI, built with `bun build --target=node` and committed. Copied skill installs run it with Node. Never edit it by hand.
-- `skills/*/SKILL.md` are the agent instructions. Long material lives in `references/`.
+- `plugins/half-fixed/` is the plugin that Claude Code and Codex install and the plugin directories list: both manifests, the skills, the logo, a README, and a copy of the license. Keep maintainer tooling out of it. `skills/` at the root is a link to its `skills/` folder.
+- `plugins/half-fixed/skills/half-fixed/scripts/half-fixed.js` is a single-file bundle of the CLI, built with `bun build --target=node` and committed. The skill runs it with Node. Never edit it by hand.
+- `plugins/half-fixed/skills/*/SKILL.md` are the agent instructions. Long material lives in `references/`.
 - `scripts/` holds the build, check, and release tooling, which runs on plain Node. Shared helpers live in `scripts/lib.js`.
 
 ## Change detection
@@ -35,7 +36,7 @@ The scanner reports candidates, and the skill does the judging. Before adding a 
 
 ## Add a skill
 
-1. Create `skills/<skill-name>/SKILL.md` with YAML frontmatter holding `name` (equal to the directory name) and `description` (what it does and when to use it, under 1024 characters).
+1. Create `plugins/half-fixed/skills/<skill-name>/SKILL.md` with YAML frontmatter holding `name` (equal to the directory name) and `description` (what it does and when to use it, under 1024 characters).
 2. Write the instructions for the agent: what to read, what to run, and when to ask the user.
 3. Run `bun run check:metadata`.
 4. Add the skill to the skills table in the [README](README.md#the-skills).
@@ -48,7 +49,7 @@ Run what CI runs, in this order, before you open a pull request:
 bun run check:metadata
 bun run test
 bun run test:coverage
-node skills/half-fixed/scripts/half-fixed.js --help
+node plugins/half-fixed/skills/half-fixed/scripts/half-fixed.js --help
 bun run check:package
 ```
 

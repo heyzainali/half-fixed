@@ -1,9 +1,0 @@
-node_modules/
-coverage/
-dist/
-.env
-.env.*
-*.swp
-*.swo
-*~
-.DS_Store

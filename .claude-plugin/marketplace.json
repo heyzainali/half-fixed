@@ -8,7 +8,7 @@
   "plugins": [
     {
       "name": "half-fixed",
-      "source": "./",
+      "source": "./plugins/half-fixed",
       "description": "Finds bug fixes that reached some sibling implementations but not the others, triages each one, and drafts contributions in the target repository's own style.",
       "author": {
         "name": "Zain Ali",

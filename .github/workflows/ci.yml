@@ -40,7 +40,7 @@ jobs:
         run: bun run test:coverage
 
       - name: Check bundled fallback under Node
-        run: node skills/half-fixed/scripts/half-fixed.js --help
+        run: node plugins/half-fixed/skills/half-fixed/scripts/half-fixed.js --help
 
   node:
     name: Node ${{ matrix.node }}
@@ -73,8 +73,8 @@ jobs:
 
       - name: Run the bundled fallback
         run: |
-          node skills/half-fixed/scripts/half-fixed.js --version
-          node skills/half-fixed/scripts/half-fixed.js scan --all || [ $? -eq 1 ]
+          node plugins/half-fixed/skills/half-fixed/scripts/half-fixed.js --version
+          node plugins/half-fixed/skills/half-fixed/scripts/half-fixed.js scan --all || [ $? -eq 1 ]
 
       # A copied skill runs outside this repo's package.json, so run a copy
       # under a CommonJS package.json the way a copied install would.
@@ -83,7 +83,7 @@ jobs:
           install="$RUNNER_TEMP/copied-skill"
           mkdir -p "$install"
           echo '{ "type": "commonjs" }' > "$RUNNER_TEMP/package.json"
-          cp -r skills/half-fixed "$install/"
+          cp -r plugins/half-fixed/skills/half-fixed "$install/"
           node "$install/half-fixed/scripts/half-fixed.js" --version
           node "$install/half-fixed/scripts/half-fixed.js" scan "$GITHUB_WORKSPACE" --all || [ $? -eq 1 ]
 

@@ -2,9 +2,9 @@
 // Several files repeat the same facts: the version, the Bun pin, the plugin
 // name, and each skill's name. This fails when any copy disagrees, and when the
 // changelog has no section for the current version.
-import { existsSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, realpathSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { ROOT, bunPin, readJson, readText, script } from './lib.js';
+import { PLUGIN, ROOT, bunPin, readJson, readText, script } from './lib.js';
 
 // Limits from the Agent Skills specification (agentskills.io).
 const SKILL_NAME = /^[a-z0-9]+(-[a-z0-9]+)*$/;
@@ -24,6 +24,9 @@ function frontmatter(markdown) {
 }
 
 const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const CLAUDE = `${PLUGIN}/.claude-plugin/plugin.json`;
+const CODEX = `${PLUGIN}/.codex-plugin/plugin.json`;
+const SKILLS = `${PLUGIN}/skills`;
 
 script(() => {
   const problems = [];
@@ -33,7 +36,7 @@ script(() => {
   const pkg = readJson('package.json');
 
   // One version and one name everywhere.
-  for (const file of ['.claude-plugin/plugin.json', '.codex-plugin/plugin.json']) {
+  for (const file of [CLAUDE, CODEX]) {
     const manifest = readJson(file);
     same(`${file} "version"`, manifest.version, pkg.version);
     same(`${file} "name"`, manifest.name, pkg.name);
@@ -42,7 +45,7 @@ script(() => {
   if (cli) same('src/version.js VERSION', cli[1], pkg.version);
   else problems.push('src/version.js has no `export const VERSION = "x.y.z";` line');
 
-  // Each marketplace lists exactly this plugin, at a folder holding that agent's manifest.
+  // Each marketplace lists exactly this plugin, in the plugin folder, which holds that agent's manifest.
   const marketplaces = [
     ['.claude-plugin/marketplace.json', '.claude-plugin/plugin.json', (source) => source],
     ['.agents/plugins/marketplace.json', '.codex-plugin/plugin.json', (source) => source.path],
@@ -52,6 +55,7 @@ script(() => {
     same(`${file} plugin names`, plugins.map((plugin) => plugin.name).join(', '), pkg.name);
     for (const plugin of plugins) {
       const folder = folderOf(plugin.source);
+      same(`${file} source of ${plugin.name}`, folder, `./${PLUGIN}`);
       if (typeof folder !== 'string' || !existsSync(join(ROOT, folder, manifest))) {
         problems.push(`${file} points ${plugin.name} at ${JSON.stringify(folder)}, which has no ${manifest}`);
       }
@@ -59,28 +63,39 @@ script(() => {
   }
 
   // The Codex listing fits OpenAI's plugin directory limits, and its images exist.
-  const listing = readJson('.codex-plugin/plugin.json').interface || {};
+  const listing = readJson(CODEX).interface || {};
   for (const [field, limit] of [['displayName', 30], ['shortDescription', 30], ['longDescription', 4000]]) {
     const text = listing[field];
-    if (typeof text !== 'string' || text.trim() === '') problems.push(`.codex-plugin/plugin.json interface.${field} is missing`);
-    else if (text.length > limit) problems.push(`.codex-plugin/plugin.json interface.${field} is ${text.length} characters, the limit is ${limit}`);
+    if (typeof text !== 'string' || text.trim() === '') problems.push(`${CODEX} interface.${field} is missing`);
+    else if (text.length > limit) problems.push(`${CODEX} interface.${field} is ${text.length} characters, the limit is ${limit}`);
   }
   for (const field of ['logo', 'composerIcon']) {
     const image = listing[field];
-    if (typeof image !== 'string' || !image.startsWith('./') || !existsSync(join(ROOT, image))) {
-      problems.push(`.codex-plugin/plugin.json interface.${field} should be a ./ path to an image in the repository, got ${JSON.stringify(image)}`);
+    if (typeof image !== 'string' || !image.startsWith('./') || !existsSync(join(ROOT, PLUGIN, image))) {
+      problems.push(`${CODEX} interface.${field} should be a ./ path to an image in the plugin, got ${JSON.stringify(image)}`);
     }
   }
 
   // The bundle is an ES module, and a copied skill may land under a CommonJS package.json.
-  same('skills/half-fixed/scripts/package.json "type"', readJson('skills/half-fixed/scripts/package.json').type, 'module');
+  const scriptsPackage = `${SKILLS}/half-fixed/scripts/package.json`;
+  same(`${scriptsPackage} "type"`, readJson(scriptsPackage).type, 'module');
+
+  // The plugin folder is what gets installed and listed, so it carries its own
+  // README and license. The root skills/ link keeps older paths working.
+  if (!existsSync(join(ROOT, PLUGIN, 'README.md'))) problems.push(`${PLUGIN} has no README.md`);
+  if (!existsSync(join(ROOT, PLUGIN, 'LICENSE')) || readText(`${PLUGIN}/LICENSE`) !== readText('LICENSE')) {
+    problems.push(`${PLUGIN}/LICENSE should be a copy of LICENSE`);
+  }
+  if (!existsSync(join(ROOT, 'skills')) || realpathSync(join(ROOT, 'skills')) !== realpathSync(join(ROOT, SKILLS))) {
+    problems.push(`skills should be a symbolic link to ${SKILLS}`);
+  }
 
   // Skills follow the Agent Skills naming rules.
-  for (const name of readdirSync(join(ROOT, 'skills')).sort()) {
-    if (!statSync(join(ROOT, 'skills', name)).isDirectory()) continue;
-    const file = `skills/${name}/SKILL.md`;
+  for (const name of readdirSync(join(ROOT, SKILLS)).sort()) {
+    if (!statSync(join(ROOT, SKILLS, name)).isDirectory()) continue;
+    const file = `${SKILLS}/${name}/SKILL.md`;
     if (!existsSync(join(ROOT, file))) {
-      problems.push(`skills/${name} has no SKILL.md`);
+      problems.push(`${SKILLS}/${name} has no SKILL.md`);
       continue;
     }
     const fields = frontmatter(readText(file));
@@ -90,7 +105,7 @@ script(() => {
     }
     same(`${file} "name"`, fields.name, name);
     if (!SKILL_NAME.test(name) || name.length > MAX_NAME) {
-      problems.push(`skills/${name}: a skill name is at most ${MAX_NAME} lowercase letters, digits, and single hyphens`);
+      problems.push(`${SKILLS}/${name}: a skill name is at most ${MAX_NAME} lowercase letters, digits, and single hyphens`);
     }
     if (!fields.description) problems.push(`${file} has no description`);
     else if (fields.description.length > MAX_DESCRIPTION) {

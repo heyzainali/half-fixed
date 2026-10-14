@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Builds the bundled CLI, or checks that the committed copy is current.
 //
-//   node scripts/fallback.js build    rewrite skills/half-fixed/scripts/half-fixed.js
+//   node scripts/fallback.js build    rewrite the scanner bundled in the half-fixed skill
 //   node scripts/fallback.js check    fail if it differs from a fresh build
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';

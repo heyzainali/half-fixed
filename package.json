@@ -13,7 +13,6 @@
   "files": [
     "bin",
     "src",
-    "skills",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"
@@ -26,7 +25,7 @@
     "check:metadata": "node scripts/metadata.js",
     "check:fallback": "node scripts/fallback.js check",
     "check:package": "node scripts/smoke-pack.js",
-    "check:node-help": "node skills/half-fixed/scripts/half-fixed.js --help",
+    "check:node-help": "node plugins/half-fixed/skills/half-fixed/scripts/half-fixed.js --help",
     "release": "node scripts/release.js",
     "half-fixed": "bun run ./bin/half-fixed.js",
     "test": "bun test ./test/*.test.js",
