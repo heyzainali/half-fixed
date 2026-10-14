@@ -12,6 +12,7 @@ bun run test                                  # bun:test suites
 bun run test:coverage                         # 100% line and function coverage of src/, then check:fallback
 bun run check:metadata                        # versions, Bun pin, skill frontmatter in step
 bun run build:fallback                        # rebuild skills/half-fixed/scripts/half-fixed.js
+bun run build:zip -- vX.Y.Z                   # Codex plugin ZIP for OpenAI's plugin directory
 bun run half-fixed -- scan /path/to/repo      # run the CLI from source
 ```
 

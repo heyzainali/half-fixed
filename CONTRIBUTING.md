@@ -68,3 +68,5 @@ Add an entry under `## [Unreleased]` in [`CHANGELOG.md`](CHANGELOG.md) for any c
 ## Releasing
 
 `bun run release <patch|minor|major|X.Y.Z>` (add `--dry-run` first) checks the branch, the changelog, npm, and GitHub, runs the checks, bumps every version file, moves the Unreleased entries under the new version, rebuilds the fallback, commits, tags, pushes, and creates the GitHub release with the changelog entries as its notes. The tag push runs `.github/workflows/publish.yml`, which publishes to npm through trusted publishing. Configure the package's trusted publisher on npmjs.com before the first release.
+
+OpenAI's plugin directory takes the Codex plugin as a ZIP upload, and a change to a skill or to the listing needs a new one. After a release, run `bun run build:zip vX.Y.Z` and upload `dist/half-fixed-X.Y.Z-codex.zip` to the plugin's page on platform.openai.com. Anthropic's directory reads the repository directly, so it needs nothing.

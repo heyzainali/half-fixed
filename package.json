@@ -22,6 +22,7 @@
     "build:fallback": "node scripts/fallback.js build",
     "build:demo": "node scripts/render-demo.js",
     "build:art": "node scripts/render-readme-art.js",
+    "build:zip": "node scripts/plugin-zip.js",
     "check:metadata": "node scripts/metadata.js",
     "check:fallback": "node scripts/fallback.js check",
     "check:package": "node scripts/smoke-pack.js",
