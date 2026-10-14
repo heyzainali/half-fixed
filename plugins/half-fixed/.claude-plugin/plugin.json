@@ -1,5 +1,6 @@
 {
   "name": "half-fixed",
+  "displayName": "half-fixed",
   "version": "0.1.2",
   "description": "Finds bug fixes that reached some sibling implementations but not the others, triages each one, and drafts contributions in the target repository's own style.",
   "author": {
@@ -9,5 +10,8 @@
   "homepage": "https://github.com/heyzainali/half-fixed",
   "repository": "https://github.com/heyzainali/half-fixed",
   "license": "MIT",
+  "supportUrl": "https://github.com/heyzainali/half-fixed/issues",
+  "privacyPolicyUrl": "https://github.com/heyzainali/half-fixed/blob/main/PRIVACY.md",
+  "termsOfServiceUrl": "https://github.com/heyzainali/half-fixed/blob/main/LICENSE",
   "keywords": ["bug-finding", "git", "code-review", "open-source", "contributions"]
 }

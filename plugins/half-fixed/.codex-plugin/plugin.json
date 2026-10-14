@@ -25,6 +25,8 @@
       "Draft a PR for this fix in the project's style."
     ],
     "websiteURL": "https://github.com/heyzainali/half-fixed",
+    "privacyPolicyURL": "https://github.com/heyzainali/half-fixed/blob/main/PRIVACY.md",
+    "termsOfServiceURL": "https://github.com/heyzainali/half-fixed/blob/main/LICENSE",
     "composerIcon": "./assets/logo.png",
     "logo": "./assets/logo.png"
   }
